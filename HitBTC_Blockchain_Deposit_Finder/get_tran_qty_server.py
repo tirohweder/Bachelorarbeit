@@ -43,8 +43,8 @@ def find_qty(cur, con, cur2):
         block_hash = row[1]
         address = row[3]
 
-        command = ["bitcoin-cli", "-rpcuser=bitcoin", "-rpcpassword=bitcoin", "getrawtransaction", '"'+txid+'"', "true",
-                   '"'+block_hash+'"']
+        command = ["bitcoin-cli", "-rpcuser=bitcoin", "-rpcpassword=bitcoin", "getrawtransaction", txid, "true",
+                   block_hash]
         # print(command)
 
         outBtcCliTemp = subprocess.Popen(command, stdout=subprocess.PIPE)
