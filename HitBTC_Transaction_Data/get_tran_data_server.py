@@ -8,7 +8,7 @@ def main():
         con = psycopg2.connect(user="trohwede",
                                password="admin",
                                host="localhost",
-                               port="5434",
+                               port="5432",
                                database="trohwede")
         cur = con.cursor()
         cur.execute("SELECT version();")
