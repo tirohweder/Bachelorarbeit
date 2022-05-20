@@ -94,7 +94,7 @@ def find_transactions(cur, con):
     print(list_of_all_addr_uniq.size)
 
     for x in list_of_all_addr_uniq:
-        statement2= "INSERT INTO inc_adresses(address) " \
+        statement2= "INSERT INTO unique_address(address) " \
                 "VALUES ("+ "'"+x+ "'"")"
         cur.execute(statement2)
         con.commit()
