@@ -51,7 +51,7 @@ def find_qty(cur, con,cur2):
         address = row[3]
 
         command = 'bitcoin-cli -rpcuser=bitcoin -rpcpassword=bitcoin getrawtransaction ' + txid + ' true ' + block_hash
-        #print(command)
+        print(command)
 
         stdin, stdout, stderr = ssh.exec_command(command)
 
