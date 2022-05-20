@@ -6,7 +6,7 @@ import json
 def main():
     try:
         con = psycopg2.connect(user="trohwede",
-                               password="admin",
+                               password="1687885@uma",
                                host="localhost",
                                port="5432",
                                database="trohwede")
