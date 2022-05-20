@@ -47,7 +47,7 @@ def find_qty(cur, con, cur2):
                    '"'+block_hash+'"']
         # print(command)
 
-        outBtcCliTemp = subprocess.Popen([command], stdout=subprocess.PIPE)
+        outBtcCliTemp = subprocess.Popen(command, stdout=subprocess.PIPE)
         outBtcCli = outBtcCliTemp.stdout
 
         formated = json.load(outBtcCli)
