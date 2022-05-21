@@ -105,7 +105,7 @@ def connectionWithHostDoeOnlyOnce(cur, con):
 
 def connectionWithHost(cur, con, cur2):
     statement1 = 'SELECT address FROM unique_address ' \
-                 'WHERE in_degree IS NOT NULL AND condition IS NULL'
+                 'WHERE in_degree IS NOT NULL AND connections_with_host IS NULL'
 
     # print(selection)
     cur.execute(statement1)
