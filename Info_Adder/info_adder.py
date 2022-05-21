@@ -18,6 +18,7 @@ def main():
         print("You are connected to - ", record, "\n")
 
         moreInfo(cur, con,cur2)
+        #connectionWithHostDoeOnlyOnce(cur, con)
 
     except (Exception) as error:
         print("Error while connecting to PostgreSQL", error)
@@ -69,7 +70,7 @@ def moreInfo(cur,con,cur2):
     conn = Neo4jConnection(uri='bolt://localhost:7687', user='trohwede', pwd='1687885@uma')
 
 
-    selection = 'SELECT address FROM adresses ' \
+    selection = 'SELECT address FROM unique_address ' \
                 'WHERE in_degree IS NULL'
 
     #print(selection)
@@ -87,12 +88,47 @@ def moreInfo(cur,con,cur2):
         result2 = conn.query(query2)
         #print(result2[0]["inDegree"],result2[0]["outDegree"])
 
-        statement = "UPDATE adresses " \
+        statement = "UPDATE unique_address " \
                     "SET in_degree = " + str(result2[0]["inDegree"]) + ", out_degree = "+\
                      str(result2[0]["outDegree"]) +\
                     " WHERE address = "+ "'"+row[0]+"'"
 
         #print(statement)
         cur2.execute(statement)
+        con.commit()
+
+def connectionWithHostDoeOnlyOnce(cur,con):
+    statement = "UPDATE unique_address " \
+                "SET connections_with_host = 1"\
+                " WHERE in_degree = 1"
+
+    cur.execute(statement)
+    con.commit()
+
+
+def connectionWithHost(cur, con, cur2):
+    statement1 = 'SELECT address FROM unique_address ' \
+                'WHERE in_degree IS NOT NULL'
+
+    #print(selection)
+    cur.execute(statement1)
+
+    for row in cur:
+
+        statement2 = '''
+                        SELECT  COUNT(*)
+                        FROM unique_address
+                        WHERE inc_address = '{0}'
+                        '''.format(row[0])
+        #print(statement2)
+        cur2.execute(statement2)
+        result=cur2.fetchall()
+        #print(result[0][0])
+        statement3 = "UPDATE unique_address " \
+                    "SET connections_with_host= "+str(result[0][0])+\
+                    " WHERE address = "+ "'"+row[0]+"'"
+
+        #print(statement3)
+        cur2.execute(statement3)
         con.commit()
 main()

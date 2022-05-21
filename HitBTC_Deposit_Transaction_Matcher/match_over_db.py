@@ -32,7 +32,7 @@ def find_match(cur, con,cur2):
     selection ='SELECT time, qty, txid FROM incoming_transactions ' \
                 'WHERE qty IS NOT NULL'
 
-    print(selection)
+    #print(selection)
     cur.execute(selection)
 
     for row in cur:
@@ -42,7 +42,7 @@ def find_match(cur, con,cur2):
         #print("here")
         statement= \
             'SELECT id, qty, timestamp ' \
-            'FROM transactions ' \
+            'FROM hitbtc_trans ' \
             'WHERE timestamp BETWEEN '+"'"+str(row[0]) +"'"+'AND '+"'"+ str(timeborder) +"'"
 
         cur2.execute(statement)

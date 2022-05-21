@@ -60,7 +60,7 @@ def finalCreate(cur, con):
                     else:
                         statementPart2 = statementPart2 + str(value) + ", "
 
-                statementPart1 = "INSERT INTO transactions(id, price, qty, side, timestamp) VALUES ("
+                statementPart1 = "INSERT INTO hitbtc_trans(id, price, qty, side, timestamp) VALUES ("
                 statement = statementPart1 + statementPart2 + ")"
                 #print(statement)
                 cur.execute(statement)
