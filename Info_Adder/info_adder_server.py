@@ -18,7 +18,7 @@ def main():
         print("You are connected to - ", record, "\n")
 
         #moreInfo(cur, con, cur2)
-        connectionWithHostDoeOnlyOnce(cur, con)
+        #connectionWithHostDoeOnlyOnce(cur, con)
         connectionWithHost(cur, con, cur2)
 
     except (Exception) as error:
@@ -104,8 +104,8 @@ def connectionWithHostDoeOnlyOnce(cur, con):
 
 
 def connectionWithHost(cur, con, cur2):
-    statement1 = 'SELECT address FROM adresses ' \
-                 'WHERE in_degree IS NOT NULL'
+    statement1 = 'SELECT address FROM unique_address ' \
+                 'WHERE in_degree IS NOT NULL AND condition IS NULL'
 
     # print(selection)
     cur.execute(statement1)
@@ -120,7 +120,7 @@ def connectionWithHost(cur, con, cur2):
         cur2.execute(statement2)
         result = cur2.fetchall()
         # print(result[0][0])
-        statement3 = "UPDATE adresses " \
+        statement3 = "UPDATE unique_address " \
                      "SET connections_with_host= " + str(result[0][0]) + \
                      " WHERE address = " + "'" + row[0] + "'"
 

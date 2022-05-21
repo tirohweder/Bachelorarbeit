@@ -17,8 +17,9 @@ def main():
         record = cur.fetchone()
         print("You are connected to - ", record, "\n")
 
-        moreInfo(cur, con,cur2)
+        #moreInfo(cur, con,cur2)
         #connectionWithHostDoeOnlyOnce(cur, con)
+        connectionWithHost(con, cur, cur2)
 
     except (Exception) as error:
         print("Error while connecting to PostgreSQL", error)
@@ -108,7 +109,7 @@ def connectionWithHostDoeOnlyOnce(cur,con):
 
 def connectionWithHost(cur, con, cur2):
     statement1 = 'SELECT address FROM unique_address ' \
-                'WHERE in_degree IS NOT NULL'
+                'WHERE in_degree IS NOT NULL AND condition IS NULL'
 
     #print(selection)
     cur.execute(statement1)
