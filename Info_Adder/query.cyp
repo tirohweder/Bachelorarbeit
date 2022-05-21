@@ -20,9 +20,9 @@
     RETURN t.txid AS txid
 
 
-    MATCH (t:Transaction)-[r:RECEIVES]->(tr:Address)
-    WHERE tr.address='3PxjQuzXzVDVfdxeXVgQmsrCnn4LLcsEod'
-    RETURN t.txid AS t_txid
+    MATCH (a:Address)
+    WHERE a.address='3PxjQuzXzVDVfdxeXVgQmsrCnn4LLcsEod'
+    RETURN a.inDegree AS inDegree, a.outDegree AS outDegree
 
 
     //Nimmt txid und guckt welche adresse das resultat ist'

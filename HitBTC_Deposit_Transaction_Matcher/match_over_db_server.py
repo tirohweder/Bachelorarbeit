@@ -4,10 +4,10 @@ import datetime
 def main():
     try:
         con = psycopg2.connect(user="trohwede",
-                               password="admin",
+                               password="1687885@uma",
                                host="localhost",
-                               port="5434",
-                               database="Bachelorarbeit_Rohweder")
+                               port="5432",
+                               database="trohwede")
         cur = con.cursor()
         cur2= con.cursor()
         cur.execute("SELECT version();")
@@ -32,7 +32,7 @@ def find_match(cur, con,cur2):
     selection ='SELECT time, qty, txid FROM incoming_transactions ' \
                 'WHERE qty IS NOT NULL'
 
-    print(selection)
+    #print(selection)
     cur.execute(selection)
 
     for row in cur:
@@ -42,16 +42,14 @@ def find_match(cur, con,cur2):
         #print("here")
         statement= \
             'SELECT id, qty, timestamp ' \
-            'FROM transactions ' \
+            'FROM hitbtc_trans ' \
             'WHERE timestamp BETWEEN '+"'"+str(row[0]) +"'"+'AND '+"'"+ str(timeborder) +"'"
 
         cur2.execute(statement)
 
-        #row -> is max value because it comes from the transaction
         for row2 in cur2:
-            if row2[1]<= row[1] and row2[1] >= row[1]-(row[1]/100)*2:
-                print("Match between: ",row[2]," and: ",row2[0]," with DepositQTY : TransactionQTY ",row[1]," : ",
-                      row2[1])
+            if row[1]== row2[1]:
+                print("Match between: ",row[2]," and: ",row2[0]," with qty: ",row2[1])
         #print (statement)
 
 main()
