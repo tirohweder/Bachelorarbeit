@@ -28,13 +28,13 @@ def main():
 
 
 def finalCreate(cur, con):
-    parameters = {"till": "2022-04-01 00:00:00.000", "limit": 1000}
+    parameters = {"till": "2019-04-10 05:16:53.950000", "limit": 1000}
 
     startingDate = datetime.datetime(int(parameters['till'][:4]), int(parameters['till'][5:7]), int(parameters['till'][                                                                                                    8:10]),
                                      int(parameters['till'][11:13]), int(parameters['till'][14:16]),
                                      int(parameters['till'][17:19]),
                                      int(parameters['till'][20:23]))
-    endingDate = startingDate - datetime.timedelta(weeks=434)
+    endingDate = startingDate - datetime.timedelta(weeks=275)
 
     currentStartDate = startingDate
     traidingPair = ("BTCUSDT")
