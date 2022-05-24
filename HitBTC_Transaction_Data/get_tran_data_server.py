@@ -81,7 +81,7 @@ def finalCreate(cur, con):
                                              int(parameters['till'][
                                                  8:10]), int(parameters['till'][11:13]),
                                              int(parameters['till'][14:16]), int(parameters['till'][17:19]),
-                                             int(parameters['till'][20:23]))
+                                             int(parameters['till'][20:23])*1000)
 
         except ConnectionError:
             return ("ERROR - " + str(response.status_code))
