@@ -28,32 +28,33 @@ def main():
 
 
 def finalCreate(cur, con):
-    parameters = {"till": "2019-04-11 00:00:00.024000", "limit": 1000}
+    parameters = {"till": "2019-04-10 05:57:28.475000", "limit": 1000}
 
     startingDate = datetime.datetime(int(parameters['till'][:4]), int(parameters['till'][5:7]), int(parameters['till'][                                                                                                    8:10]),
                                      int(parameters['till'][11:13]), int(parameters['till'][14:16]),
                                      int(parameters['till'][17:19]),
                                      int(parameters['till'][20:26]))
     endingDate = startingDate - datetime.timedelta(weeks=434)
-    print(startingDate)
+    #print(startingDate)
     currentStartDate = startingDate
     traidingPair = ("BTCUSDT")
     count = 0;
 
-    #set variable data abitrary
-    prevStartDate = currentStartDate + datetime.timedelta(days=1)
+
     while (currentStartDate > endingDate):
         responseformat = list()
-        print(currentStartDate)
+        #print(currentStartDate)
 
-        if (currentStartDate== prevStartDate):
-            currentStartDate+= datetime.timedelta(milliseconds=1)
+        #print(currentStartDate, prevStartDate, currentStartDate== prevStartDate)
+
 
         prevStartDate= currentStartDate
         try:
             count=count+1;
             response = requests.get("https://api.hitbtc.com/api/3/public/trades/" + traidingPair, params=parameters)
             responseformat = responseformat + json.loads(response.text)
+
+
 
             counter = 0
             for item in responseformat:
@@ -74,7 +75,7 @@ def finalCreate(cur, con):
                 cur.execute(statement)
                 con.commit()
             if (count%100==0):
-                print(str(count*10)+" transactions parsed")
+                print(str(count*100000)+" transactions parsed")
 
 
             parameters = {"till": responseformat[-1]['timestamp'], "limit": 1000}
@@ -83,6 +84,14 @@ def finalCreate(cur, con):
                                                  8:10]), int(parameters['till'][11:13]),
                                              int(parameters['till'][14:16]), int(parameters['till'][17:19]),
                                              int(parameters['till'][20:23])*1000)
+
+            #print(currentStartDate, prevStartDate)
+            if (currentStartDate == prevStartDate):
+                currentStartDate = currentStartDate - datetime.timedelta(milliseconds=10)
+                parameters= {"till":currentStartDate,"limit":1000}
+
+            print(parameters)
+            #print("")
 
         except ConnectionError:
             return ("ERROR - " + str(response.status_code))

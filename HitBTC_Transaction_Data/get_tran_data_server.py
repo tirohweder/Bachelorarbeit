@@ -44,13 +44,12 @@ def finalCreate(cur, con):
     prevStartDate = currentStartDate + datetime.timedelta(days=1)
     while (currentStartDate > endingDate):
         responseformat = list()
+        # print(currentStartDate)
+        # print(currentStartDate, prevStartDate, currentStartDate== prevStartDate)
 
-        if (currentStartDate== prevStartDate):
-            currentStartDate+= datetime.timedelta(milliseconds=1)
-
-        prevStartDate= currentStartDate
+        prevStartDate = currentStartDate
         try:
-            count=count+1;
+            count = count + 1;
             response = requests.get("https://api.hitbtc.com/api/3/public/trades/" + traidingPair, params=parameters)
             responseformat = responseformat + json.loads(response.text)
 
@@ -69,19 +68,23 @@ def finalCreate(cur, con):
 
                 statementPart1 = "INSERT INTO hitbtc_trans(id, price, qty, side, timestamp) VALUES ("
                 statement = statementPart1 + statementPart2 + ")"
-                #print(statement)
+                # print(statement)
                 cur.execute(statement)
                 con.commit()
-            if (count%100==0):
-                print(str(count*10)+" transactions parsed")
-
+            if (count % 100 == 0):
+                print(str(count * 100000) + " transactions parsed")
 
             parameters = {"till": responseformat[-1]['timestamp'], "limit": 1000}
             currentStartDate = datetime.datetime(int(parameters['till'][:4]), int(parameters['till'][5:7]),
-                                             int(parameters['till'][
-                                                 8:10]), int(parameters['till'][11:13]),
-                                             int(parameters['till'][14:16]), int(parameters['till'][17:19]),
-                                             int(parameters['till'][20:23])*1000)
+                                                 int(parameters['till'][
+                                                     8:10]), int(parameters['till'][11:13]),
+                                                 int(parameters['till'][14:16]), int(parameters['till'][17:19]),
+                                                 int(parameters['till'][20:23]) * 1000)
+
+            # print(currentStartDate, prevStartDate)
+            if (currentStartDate == prevStartDate):
+                currentStartDate = currentStartDate - datetime.timedelta(milliseconds=10)
+                parameters = {"till": currentStartDate, "limit": 1000}
 
             print(parameters)
 
