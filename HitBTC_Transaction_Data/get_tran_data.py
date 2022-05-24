@@ -35,13 +35,20 @@ def finalCreate(cur, con):
                                      int(parameters['till'][17:19]),
                                      int(parameters['till'][20:23]))
     endingDate = startingDate - datetime.timedelta(weeks=434)
-
+    print(startingDate)
     currentStartDate = startingDate
     traidingPair = ("BTCUSDT")
     count = 0;
+
+    #set variable data abitrary
+    prevStartDate = currentStartDate + datetime.timedelta(days=1)
     while (currentStartDate > endingDate):
         responseformat = list()
 
+        if (currentStartDate== prevStartDate):
+            currentStartDate+= datetime.timedelta(milliseconds=1)
+
+        prevStartDate= currentStartDate
         try:
             count=count+1;
             response = requests.get("https://api.hitbtc.com/api/3/public/trades/" + traidingPair, params=parameters)
