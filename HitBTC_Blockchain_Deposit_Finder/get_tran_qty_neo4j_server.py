@@ -83,7 +83,7 @@ def find_qty(cur, con, cur2):
                     "SET qty = " + str(result[0]["qty"] / 100000000) + \
                     " WHERE txid= " + "'" + row[0] + "'" + " AND inc_address= " + "'" + row[3] + "'"
 
-        print(statement)
+        #print(statement)
         cur2.execute(statement)
         con.commit()
 
