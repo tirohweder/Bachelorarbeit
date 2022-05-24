@@ -18,6 +18,7 @@ def main():
         print("You are connected to - ", record, "\n")
 
         moreInfo(cur, con, cur2)
+
         #connectionWithHostDoeOnlyOnce(cur, con)
         connectionWithHost(cur, con, cur2)
 
