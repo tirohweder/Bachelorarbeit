@@ -1,6 +1,7 @@
 import psycopg2
 from neo4j import GraphDatabase
 
+
 def main():
     try:
         con = psycopg2.connect(user="trohwede",
@@ -9,12 +10,12 @@ def main():
                                port="5432",
                                database="trohwede")
         cur = con.cursor()
-        cur2= con.cursor()
+        cur2 = con.cursor()
         cur.execute("SELECT version();")
         record = cur.fetchone()
         print("You are connected to - ", record, "\n")
 
-        find_qty(cur, con,cur2)
+        find_qty(cur, con, cur2)
 
     except (Exception) as error:
         print("Error while connecting to PostgreSQL", error[0])
@@ -27,18 +28,19 @@ def main():
             con.close()
             print("PostgreSQL connection is closed")
 
+
 class Neo4jConnection:
 
-    def __init__(self, uri, user ,pwd):
+    def __init__(self, uri, user, pwd):
         self.__uri = uri
         self.__user = user
         self.__pwd = pwd
         self.__driver = None
 
         try:
-            self.__driver = GraphDatabase.driver(self.__uri, auth=(self.__user,self.__pwd))
+            self.__driver = GraphDatabase.driver(self.__uri, auth=(self.__user, self.__pwd))
         except Exception as e:
-            print ("Failed to create the driver: ",e)
+            print("Failed to create the driver: ", e)
 
     def close(self):
         if self.__driver is not None:
@@ -51,17 +53,17 @@ class Neo4jConnection:
 
         try:
             session = self.__driver.session(database=db) if db is not None else self.__driver.session()
-            response= list (session.run(query, parameters))
+            response = list(session.run(query, parameters))
         except Exception as e:
             print("Query failed:", e)
         finally:
-                if session is not None:
-                        session.close()
+            if session is not None:
+                session.close()
         return response
 
 
-def find_qty(cur, con,cur2):
-    conn = Neo4jConnection(uri='bolt://localhost:7687',user= 'trohwede', pwd='1687885@uma')
+def find_qty(cur, con, cur2):
+    conn = Neo4jConnection(uri='bolt://localhost:7687', user='trohwede', pwd='1687885@uma')
 
     selection = 'SELECT * FROM incoming_transactions ' \
                 "WHERE qty IS NULL"
@@ -69,19 +71,21 @@ def find_qty(cur, con,cur2):
     cur.execute(selection)
 
     for row in cur:
-        query='''
+        query = '''
                 MATCH (t:Transaction)-[r:RECEIVES]->(a:Address)
                 WHERE t.txid = '{0}' AND a.address = '{1}'
                 RETURN r.value AS qty
-                '''.format(row[0],row[3])
+                '''.format(row[0], row[3])
 
         result = conn.query(query)
 
         statement = "UPDATE incoming_transactions " \
-                    "SET qty = " + str(result[0]["qty"]/100000000) + \
+                    "SET qty = " + str(result[0]["qty"] / 100000000) + \
                     " WHERE txid= " + "'" + row[0] + "'" + " AND inc_address= " + "'" + row[3] + "'"
 
+        print(statement)
         cur2.execute(statement)
         con.commit()
+
 
 main()
