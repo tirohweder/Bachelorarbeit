@@ -86,7 +86,7 @@ def finalCreate(cur, con):
                 currentStartDate = currentStartDate - datetime.timedelta(milliseconds=10)
                 parameters = {"till": currentStartDate, "limit": 1000}
 
-            print(parameters)
+            #print(parameters)
 
         except ConnectionError:
             return ("ERROR - " + str(response.status_code))
