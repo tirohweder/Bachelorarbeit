@@ -9,12 +9,12 @@ def main():
                                port="5432",
                                database="trohwede")
         cur = con.cursor()
-
+        cur2= con.cursor()
         cur.execute("SELECT version();")
         record = cur.fetchone()
         print("You are connected to - ", record, "\n")
 
-        find_qty(cur, con)
+        find_qty(cur, con,cur2)
 
     except (Exception) as error:
         print("Error while connecting to PostgreSQL", error[0])
@@ -23,6 +23,7 @@ def main():
     finally:
         if (con):
             cur.close()
+            cur2.close()
             con.close()
             print("PostgreSQL connection is closed")
 
@@ -59,7 +60,7 @@ class Neo4jConnection:
         return response
 
 
-def find_qty(cur, con):
+def find_qty(cur, con,cur2):
     conn = Neo4jConnection(uri='bolt://localhost:7687',user= 'trohwede', pwd='1687885@uma')
 
     selection = 'SELECT * FROM incoming_transactions ' \
@@ -77,8 +78,10 @@ def find_qty(cur, con):
         result = conn.query(query)
 
         statement = "UPDATE incoming_transactions " \
-                    "SET qty = " + str(result["qty"]) + \
+                    "SET qty = " + str(result[0]["qty"]/100000000) + \
                     " WHERE txid= " + "'" + row[0] + "'" + " AND inc_address= " + "'" + row[3] + "'"
 
-        cur.execute(statement)
+        cur2.execute(statement)
         con.commit()
+
+main()
