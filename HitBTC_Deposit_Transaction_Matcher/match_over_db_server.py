@@ -42,7 +42,7 @@ def find_match(cur, con,cur2):
         #print("here")
         statement= \
             'SELECT id, qty, timestamp ' \
-            'FROM hitbtc_trans ' \
+            'FROM hitbtc_trans_usdt ' \
             'WHERE timestamp BETWEEN '+"'"+str(row[0]) +"'"+'AND '+"'"+ str(timeborder) +"'"
 
         cur2.execute(statement)
