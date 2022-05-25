@@ -1,6 +1,6 @@
 import psycopg2
 import datetime
-
+from collections import Counter
 from neo4j import GraphDatabase
 
 
@@ -105,29 +105,42 @@ def connectionWithHostDoeOnlyOnce(cur, con):
 
 
 def connectionWithHost(cur, con, cur2):
-    statement1 = 'SELECT address FROM unique_address ' \
-                 'WHERE in_degree IS NOT NULL AND connections_with_host IS NULL'
+    conn = Neo4jConnection(uri='bolt://localhost:7687',user= 'trohwede', pwd='1687885@uma')
+    list_of_all_addr = []
 
-    # print(selection)
-    cur.execute(statement1)
+    #nimmt addresse und guckt welche transactions zu der wallet führen
+    query= '''
+    MATCH (t:Transaction)-[r:RECEIVES]->(tr:Address)
+    WHERE tr.address='1EEqRvnS7XqMoXDcaGL7bLS3hzZi1qUZm1'
+    RETURN t.txid AS t_txid
+    '''
 
-    for row in cur:
-        statement2 = '''
-                        SELECT  COUNT(*)
-                        FROM incoming_transactions
-                        WHERE inc_address = '{0}'
-                        '''.format(row[0])
-        # print(statement2)
-        cur2.execute(statement2)
-        result = cur2.fetchall()
-        # print(result[0][0])
-        statement3 = "UPDATE unique_address " \
-                     "SET connections_with_host= " + str(result[0][0]) + \
-                     " WHERE address = " + "'" + row[0] + "'"
+    result = conn.query(query)
 
-        # print(statement3)
-        cur2.execute(statement3)
+    for incoming_transactions in result:
+       #here i get all address that are part of a transaktion
+        query3 = '''
+        MATCH (a:Address)-[s:SENDS]->(tr:Transaction)
+        WHERE tr.txid='{0}'
+        RETURN a.address AS address
+        '''.format(incoming_transactions["t_txid"])
+
+        result3= conn.query(query3)
+
+        for x in result3:
+            list_of_all_addr.append(x["address"])
+
+    counts = dict(Counter(list_of_all_addr))
+    duplicates = {key:value for key, value in counts.items()}
+    for keys in duplicates.keys():
+        statement = "UPDATE unique_address " \
+                     "SET connections_with_host= " + str(duplicates[keys]) + \
+                     " WHERE address = " + "'" + keys+ "'"
+
+        #print(statement)
+        cur2.execute(statement)
         con.commit()
+
 
 
 main()

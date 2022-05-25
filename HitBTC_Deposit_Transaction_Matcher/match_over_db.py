@@ -10,11 +10,12 @@ def main():
                                database="Bachelorarbeit_Rohweder")
         cur = con.cursor()
         cur2= con.cursor()
+        cur3 = con.cursor()
         cur.execute("SELECT version();")
         record = cur.fetchone()
         print("You are connected to - ", record, "\n")
 
-        find_match(cur, con,cur2)
+        find_match(cur, con,cur2,cur3)
 
     except (Exception) as error:
         print("Error while connecting to PostgreSQL", error)
@@ -23,11 +24,12 @@ def main():
         if (con):
             cur.close()
             cur2.close()
+            cur3.close()
             con.close()
             print("PostgreSQL connection is closed")
 
 
-def find_match(cur, con,cur2):
+def find_match(cur, con,cur2,cur3):
 
     selection ='SELECT time, qty, txid FROM incoming_transactions ' \
                 'WHERE qty IS NOT NULL AND time > to_timestamp(2019-04-09)'
@@ -55,8 +57,15 @@ def find_match(cur, con,cur2):
         for row2 in tem2:
             #print("t")
             if row2[1]<= row[1] and row2[1] >= row[1]-(row[1]/100)*2:
-                print("Match between: ",row[2]," and: ",row2[0]," with DepositQTY : TransactionQTY ",row[1]," : ",
-                      row2[1])
+                #print("Match between: ",row[2]," and: ",row2[0]," with DepositQTY : TransactionQTY ",row[1]," : ",
+                #      row2[1])
+                statement2 = \
+                'INSERT INTO matches (txid, time, tran_qty,dep_qty, pair, tran_id)' \
+                'VALUES (row[2], row[0], row2[1], row[1], "USDT", row2[0])'
+
+                cur3.execute(statement2)
+                con.commit()
+
         #print (statement)
 
 main()
