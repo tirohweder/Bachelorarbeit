@@ -3,15 +3,7 @@
   <database-model serializer="dbm" dbms="POSTGRES" family-id="POSTGRES" format-version="4.32">
     <root id="1">
       <DateStyle>dmy</DateStyle>
-      <Grants>1||-9223372036854775808|c|G
-1||10|c|G
-1||10|C|G
-1||10|T|G
-13753||-9223372036854775808|c|G
-13753||10|c|G
-13753||10|C|G
-13753||10|T|G</Grants>
-      <IntrospectionStateNumber>52830082</IntrospectionStateNumber>
+      <IntrospectionStateNumber>53167691</IntrospectionStateNumber>
       <ServerVersion>14.2</ServerVersion>
       <StartupTime>1653374823</StartupTime>
       <TimeZones>true ACDT
@@ -808,7 +800,7 @@ false Zulu
 13388||10|C|G
 13388||-9223372036854775808|U|G
 13388||10|U|G</Grants>
-      <IntrospectionStateNumber>52830083</IntrospectionStateNumber>
+      <IntrospectionStateNumber>53167692</IntrospectionStateNumber>
       <ObjectId>16397</ObjectId>
       <OwnerName>postgres</OwnerName>
     </database>
@@ -4239,7 +4231,7 @@ false Zulu
     <schema id="263" parent="2" name="public">
       <Comment>standard public schema</Comment>
       <Current>1</Current>
-      <IntrospectionStateNumber>52830083</IntrospectionStateNumber>
+      <IntrospectionStateNumber>53167692</IntrospectionStateNumber>
       <ObjectId>2200</ObjectId>
       <StateNumber>527</StateNumber>
       <OwnerName>postgres</OwnerName>
@@ -4252,95 +4244,137 @@ false Zulu
     </table>
     <table id="265" parent="263" name="incoming_transactions">
       <ObjectId>16422</ObjectId>
-      <StateNumber>46993704</StateNumber>
+      <StateNumber>53167689</StateNumber>
       <AccessMethodId>2</AccessMethodId>
       <OwnerName>postgres</OwnerName>
     </table>
-    <table id="266" parent="263" name="unique_address">
+    <table id="266" parent="263" name="matches">
+      <ObjectId>25245</ObjectId>
+      <StateNumber>53167685</StateNumber>
+      <AccessMethodId>2</AccessMethodId>
+      <OwnerName>trohwede</OwnerName>
+    </table>
+    <table id="267" parent="263" name="unique_address">
       <ObjectId>16884</ObjectId>
       <StateNumber>52830008</StateNumber>
       <AccessMethodId>2</AccessMethodId>
       <OwnerName>postgres</OwnerName>
     </table>
-    <column id="267" parent="264" name="id">
+    <column id="268" parent="264" name="id">
       <DataType>integer|0s</DataType>
       <Position>6</Position>
       <StateNumber>3075836</StateNumber>
       <TypeId>23</TypeId>
     </column>
-    <column id="268" parent="264" name="price">
+    <column id="269" parent="264" name="price">
       <DataType>numeric|0s</DataType>
       <Position>7</Position>
       <StateNumber>52778337</StateNumber>
       <TypeId>1700</TypeId>
     </column>
-    <column id="269" parent="264" name="qty">
+    <column id="270" parent="264" name="qty">
       <DataType>numeric|0s</DataType>
       <Position>8</Position>
       <StateNumber>3075840</StateNumber>
       <TypeId>1700</TypeId>
     </column>
-    <column id="270" parent="264" name="side">
+    <column id="271" parent="264" name="side">
       <DataType>text|0s</DataType>
       <Position>9</Position>
       <StateNumber>52778525</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="271" parent="264" name="timestamp">
+    <column id="272" parent="264" name="timestamp">
       <DataType>timestamp|0s</DataType>
       <Position>10</Position>
       <StateNumber>3075844</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="272" parent="265" name="txid">
+    <column id="273" parent="265" name="txid">
       <DataType>text|0s</DataType>
       <Position>1</Position>
       <StateNumber>37742567</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="273" parent="265" name="block_hash">
+    <column id="274" parent="265" name="block_hash">
       <DataType>text|0s</DataType>
       <Position>2</Position>
       <StateNumber>37742568</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="274" parent="265" name="time">
+    <column id="275" parent="265" name="time">
       <DataType>timestamp with time zone|0s</DataType>
       <Position>3</Position>
       <StateNumber>37741906</StateNumber>
       <TypeId>1184</TypeId>
     </column>
-    <column id="275" parent="265" name="inc_address">
+    <column id="276" parent="265" name="inc_address">
       <DataType>text|0s</DataType>
       <Position>4</Position>
       <StateNumber>52798914</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="276" parent="265" name="qty">
+    <column id="277" parent="265" name="qty">
       <DataType>numeric|0s</DataType>
       <Position>5</Position>
       <StateNumber>46993704</StateNumber>
       <TypeId>1700</TypeId>
     </column>
-    <column id="277" parent="266" name="address">
+    <column id="278" parent="265" name="nr_of_matches">
+      <DataType>numeric|0s</DataType>
+      <Position>6</Position>
+      <StateNumber>53167689</StateNumber>
+      <TypeId>1700</TypeId>
+    </column>
+    <column id="279" parent="266" name="txid">
+      <DataType>text|0s</DataType>
+      <Position>1</Position>
+      <StateNumber>53167685</StateNumber>
+      <TypeId>25</TypeId>
+    </column>
+    <column id="280" parent="266" name="time">
+      <DataType>timestamp|0s</DataType>
+      <Position>2</Position>
+      <StateNumber>53167685</StateNumber>
+      <TypeId>1114</TypeId>
+    </column>
+    <column id="281" parent="266" name="qty">
+      <DataType>numeric|0s</DataType>
+      <Position>3</Position>
+      <StateNumber>53167685</StateNumber>
+      <TypeId>1700</TypeId>
+    </column>
+    <column id="282" parent="266" name="pair">
+      <DataType>text|0s</DataType>
+      <Position>4</Position>
+      <StateNumber>53167685</StateNumber>
+      <TypeId>25</TypeId>
+    </column>
+    <column id="283" parent="266" name="tran_id">
+      <DataType>numeric|0s</DataType>
+      <Position>5</Position>
+      <StateNumber>53167685</StateNumber>
+      <TypeId>1700</TypeId>
+    </column>
+    <column id="284" parent="267" name="address">
       <DataType>text|0s</DataType>
       <Position>1</Position>
       <StateNumber>48185942</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="278" parent="266" name="in_degree">
+    <column id="285" parent="267" name="in_degree">
       <DataType>numeric|0s</DataType>
       <Position>6</Position>
       <StateNumber>52825962</StateNumber>
       <TypeId>1700</TypeId>
     </column>
-    <column id="279" parent="266" name="out_degree">
+    <column id="286" parent="267" name="out_degree">
       <DataType>numeric|0s</DataType>
       <Position>7</Position>
       <StateNumber>52825961</StateNumber>
       <TypeId>1700</TypeId>
     </column>
-    <column id="280" parent="266" name="connections_with_host">
+    <column id="287" parent="267" name="connections_with_host">
       <DataType>numeric|0s</DataType>
       <Position>8</Position>
       <StateNumber>52827527</StateNumber>

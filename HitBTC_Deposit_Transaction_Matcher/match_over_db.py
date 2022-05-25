@@ -30,12 +30,14 @@ def main():
 def find_match(cur, con,cur2):
 
     selection ='SELECT time, qty, txid FROM incoming_transactions ' \
-                'WHERE qty IS NOT NULL'
+                'WHERE qty IS NOT NULL AND time > to_timestamp(2019-04-09)'
 
     #print(selection)
     cur.execute(selection)
+    test= cur.fetchall()
+    print(len(test))
+    for row in test:
 
-    for row in cur:
         timebordertemp = row[0]
         timediff = datetime.timedelta(hours= 2)
         timeborder = timebordertemp +timediff
@@ -45,10 +47,13 @@ def find_match(cur, con,cur2):
             'FROM hitbtc_trans ' \
             'WHERE timestamp BETWEEN '+"'"+str(row[0]) +"'"+'AND '+"'"+ str(timeborder) +"'"
 
+        #print(statement)
         cur2.execute(statement)
-
+        tem2 = cur2.fetchall()
+        #print(len(tem2))
         #row -> is max value because it comes from the transaction
-        for row2 in cur2:
+        for row2 in tem2:
+            #print("t")
             if row2[1]<= row[1] and row2[1] >= row[1]-(row[1]/100)*2:
                 print("Match between: ",row[2]," and: ",row2[0]," with DepositQTY : TransactionQTY ",row[1]," : ",
                       row2[1])
