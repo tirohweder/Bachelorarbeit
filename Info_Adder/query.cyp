@@ -16,12 +16,13 @@
 
     MATCH (t:Transaction)-[r:RECEIVES]->(tr:Address)
     MATCH (t)-[b:BELONGS_TO]->(bl:Block)
-    WHERE tr.address='3PxjQuzXzVDVfdxeXVgQmsrCnn4LLcsEod'
-    RETURN t.txid AS txid
+    WHERE tr.address='32t4wQ8daSM3mfu4aESzChg4RsZEqvFCKa'
+    RETURN t.txid AS txid, bl.mediantime
+
 
 
     MATCH (t:Transaction)-[r:RECEIVES]->(a:Address)
-    WHERE t.txid = '358bb1d8044062727e72ccc3550576b8c461e95a1246489e3de121516d171bc1' AND a.address = '3KTVzdmtkpHzabTFWr42vyPZaBeQHr2gXS'
+    WHERE t.txid = '00de7d29e9c4acc43ff6420a1cf0e420532bbe0503f9cc04287ce8119119af23' AND a.address = '32t4wQ8daSM3mfu4aESzChg4RsZEqvFCKa'
     RETURN r.value
 
 

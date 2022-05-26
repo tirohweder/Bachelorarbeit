@@ -3,15 +3,7 @@
   <database-model serializer="dbm" dbms="POSTGRES" family-id="POSTGRES" format-version="4.32">
     <root id="1">
       <DateStyle>dmy</DateStyle>
-      <Grants>1||-9223372036854775808|c|G
-1||10|c|G
-1||10|C|G
-1||10|T|G
-13753||-9223372036854775808|c|G
-13753||10|c|G
-13753||10|C|G
-13753||10|T|G</Grants>
-      <IntrospectionStateNumber>53167696</IntrospectionStateNumber>
+      <IntrospectionStateNumber>53174290</IntrospectionStateNumber>
       <ServerVersion>14.2</ServerVersion>
       <StartupTime>1653461239</StartupTime>
       <TimeZones>true ACDT
@@ -808,7 +800,7 @@ false Zulu
 13388||10|C|G
 13388||-9223372036854775808|U|G
 13388||10|U|G</Grants>
-      <IntrospectionStateNumber>53167697</IntrospectionStateNumber>
+      <IntrospectionStateNumber>53174291</IntrospectionStateNumber>
       <ObjectId>16397</ObjectId>
       <OwnerName>postgres</OwnerName>
     </database>
@@ -4239,7 +4231,7 @@ false Zulu
     <schema id="263" parent="2" name="public">
       <Comment>standard public schema</Comment>
       <Current>1</Current>
-      <IntrospectionStateNumber>53167697</IntrospectionStateNumber>
+      <IntrospectionStateNumber>53174291</IntrospectionStateNumber>
       <ObjectId>2200</ObjectId>
       <StateNumber>527</StateNumber>
       <OwnerName>postgres</OwnerName>
@@ -4258,7 +4250,7 @@ false Zulu
     </table>
     <table id="266" parent="263" name="matches">
       <ObjectId>25245</ObjectId>
-      <StateNumber>53167694</StateNumber>
+      <StateNumber>53174288</StateNumber>
       <AccessMethodId>2</AccessMethodId>
       <OwnerName>trohwede</OwnerName>
     </table>
@@ -4311,10 +4303,10 @@ false Zulu
       <TypeId>25</TypeId>
     </column>
     <column id="275" parent="265" name="time">
-      <DataType>timestamp with time zone|0s</DataType>
+      <DataType>timestamp|0s</DataType>
       <Position>3</Position>
-      <StateNumber>37741906</StateNumber>
-      <TypeId>1184</TypeId>
+      <StateNumber>53174274</StateNumber>
+      <TypeId>1114</TypeId>
     </column>
     <column id="276" parent="265" name="inc_address">
       <DataType>text|0s</DataType>
@@ -4340,35 +4332,35 @@ false Zulu
       <StateNumber>53167685</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="280" parent="266" name="time">
-      <DataType>timestamp|0s</DataType>
-      <Position>2</Position>
-      <StateNumber>53167685</StateNumber>
-      <TypeId>1114</TypeId>
-    </column>
-    <column id="281" parent="266" name="tran_qty">
+    <column id="280" parent="266" name="tran_qty">
       <DataType>numeric|0s</DataType>
       <Position>3</Position>
       <StateNumber>53167693</StateNumber>
       <TypeId>1700</TypeId>
     </column>
-    <column id="282" parent="266" name="pair">
+    <column id="281" parent="266" name="pair">
       <DataType>text|0s</DataType>
       <Position>4</Position>
       <StateNumber>53167685</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="283" parent="266" name="tran_id">
+    <column id="282" parent="266" name="tran_id">
       <DataType>numeric|0s</DataType>
       <Position>5</Position>
       <StateNumber>53167685</StateNumber>
       <TypeId>1700</TypeId>
     </column>
-    <column id="284" parent="266" name="dep_qty">
-      <DataType>integer|0s</DataType>
+    <column id="283" parent="266" name="dep_qty">
+      <DataType>numeric|0s</DataType>
       <Position>6</Position>
-      <StateNumber>53167694</StateNumber>
-      <TypeId>23</TypeId>
+      <StateNumber>53167762</StateNumber>
+      <TypeId>1700</TypeId>
+    </column>
+    <column id="284" parent="266" name="time_diff">
+      <DataType>numeric|0s</DataType>
+      <Position>7</Position>
+      <StateNumber>53174288</StateNumber>
+      <TypeId>1700</TypeId>
     </column>
     <column id="285" parent="267" name="address">
       <DataType>text|0s</DataType>
