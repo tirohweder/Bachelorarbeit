@@ -1,3 +1,4 @@
+import numpy as np
 import psycopg2
 import datetime
 from collections import Counter
@@ -130,7 +131,14 @@ def connectionWithHost(cur, con, cur2):
 
         result3= conn.query(query3)
 
+        unique_address_in_transactions = list()
         for x in result3:
+            unique_address_in_transactions.append(x["address"])
+
+        temp = np.asarray(list_of_all_addr)
+        list_of_all_addr_uniq = np.unique(temp)
+
+        for x in unique_address_in_transactions:
             list_of_all_addr.append(x["address"])
 
     counts = dict(Counter(list_of_all_addr))
