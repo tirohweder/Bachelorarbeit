@@ -28,7 +28,7 @@ def main():
 
 
 def finalCreate(cur, con):
-    parameters = {"till": "2022-03-30 23:59:58.412000", "limit": 1000}
+    parameters = {"till": "2020-08-10 21:44:42.805000", "limit": 1000}
 
     startingDate = datetime.datetime(int(parameters['till'][:4]), int(parameters['till'][5:7]), int(parameters['till'][                                                                                                    8:10]),
                                      int(parameters['till'][11:13]), int(parameters['till'][14:16]),
