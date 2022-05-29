@@ -26,6 +26,15 @@
     RETURN r.value
 
 
+        MATCH (a:Address)-[s:SENDS]->(tr:Transaction)
+        WHERE a.address='3EBCui3ZcGVBRQEiVasKJy7H8rso7DgRLi'
+        RETURN tr.txid
+
+
+    MATCH (a:Address)
+    WHERE a.address = '3EBCui3ZcGVBRQEiVasKJy7H8rso7DgRLi'
+    RETURN a.address, a.inDegree, a.outDegree
+
     //Nimmt txid und guckt welche adresse das resultat ist'
     MATCH (t:Transaction)-[r:RECEIVES]->(tr:Address)
     WHERE t.txid='1bb2076b85a947ffa16892f5e66f1b8083ee8121ba390f69953391c90d6ca317'

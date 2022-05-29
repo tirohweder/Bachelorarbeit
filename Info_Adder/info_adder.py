@@ -20,8 +20,8 @@ def main():
 
         #moreInfo(cur, con,cur2)
         #connectionWithHostDoeOnlyOnce(cur, con)
-        connectionWithHost(con, cur, cur2)
-
+        #connectionWithHost(con, cur, cur2)
+        getRealOutDegree(cur, con, cur2)
     except (Exception) as error:
         print("Error while connecting to PostgreSQL", error)
 
@@ -151,6 +151,40 @@ def connectionWithHost(cur, con, cur2):
         #print(statement)
         cur2.execute(statement)
         con.commit()
+
+
+def getRealOutDegree(cur,con,cur2):
+    conn = Neo4jConnection(uri='bolt://localhost:7687', user='trohwede', pwd='1687885@uma')
+
+
+    selection = 'SELECT address FROM unique_address ' \
+                'WHERE real_out_deg IS NULL'
+
+    #print(selection)
+    cur.execute(selection)
+    for row in cur:
+
+        #nimmt addresse und guckt welche transactions zu der wallet führen
+        query2= '''
+        MATCH (a:Address)-[s:SENDS]->(tr:Transaction)
+        WHERE a.address='{0}'
+        RETURN tr.txid AS txid
+        '''.format(row[0])
+
+
+        result2 = conn.query(query2)
+
+        #print(result2)
+        all_trid_of_outEdge = list()
+
+        for x in result2:
+            all_trid_of_outEdge.append(x["txid"])
+
+        temp = np.asarray(all_trid_of_outEdge)
+
+        unique_outerEdge = np.unique(temp)
+        print(len(temp), len(unique_outerEdge))
+
 
 
 main()
