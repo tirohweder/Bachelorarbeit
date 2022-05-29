@@ -169,10 +169,16 @@ def getRealOutDegree(cur,con,cur2):
 
         for x in result2:
             all_trid_of_outEdge.append(x["txid"])
-
         temp = np.asarray(all_trid_of_outEdge)
-
         unique_outerEdge = np.unique(temp)
-        print(len(temp), len(unique_outerEdge))
+
+
+        statement = "UPDATE unique_address " \
+                     "SET real_out_deg= " + str(len(unique_outerEdge)) + \
+                     " WHERE address = " + "'" + row[0]+ "'"
+
+        #print(statement)
+        cur2.execute(statement)
+        con.commit()
 
 main()
