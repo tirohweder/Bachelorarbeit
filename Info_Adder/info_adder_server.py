@@ -181,4 +181,40 @@ def getRealOutDegree(cur,con,cur2):
         cur2.execute(statement)
         con.commit()
 
+def getRealInDegree(cur,con,cur2):
+    conn = Neo4jConnection(uri='bolt://localhost:7687', user='trohwede', pwd='1687885@uma')
+
+
+    selection = 'SELECT address FROM unique_address ' \
+                'WHERE real_in_deg IS NULL'
+
+    #print(selection)
+    cur.execute(selection)
+    for row in cur:
+
+        #nimmt addresse und guckt welche transactions zu der wallet führen
+        query2= '''
+        MATCH (tr:Transaction)-[s:RECEIVES]->(a:Address)
+        WHERE a.address='{0}'
+        RETURN tr.txid AS txid
+        '''.format(row[0])
+
+        result2 = conn.query(query2)
+
+        #print(result2)
+        all_trid_of_outEdge = list()
+
+        for x in result2:
+            all_trid_of_outEdge.append(x["txid"])
+
+        temp = np.asarray(all_trid_of_outEdge)
+        unique_outerEdge = np.unique(temp)
+
+        statement = "UPDATE unique_address " \
+                    "SET real_out_deg= " + str(len(unique_outerEdge)) + \
+                    "WHERE address = " + "'" + row[0]+ "'"
+
+        cur2.execute(statement)
+        con.commit()
+
 main()
