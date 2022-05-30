@@ -22,7 +22,7 @@ def main():
 
         #connectionWithHostDoeOnlyOnce(cur, con)
         #connectionWithHost(cur, con, cur2)
-        getRealOutDegree(cur,con,cur2)
+        #getRealOutDegree(cur,con,cur2)
         getRealInDegree(cur,con,cur2)
 
     except (Exception) as error:
