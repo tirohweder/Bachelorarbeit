@@ -23,7 +23,8 @@ def main():
         #connectionWithHostDoeOnlyOnce(cur, con)
         #connectionWithHost(cur, con, cur2)
         #getRealOutDegree(cur,con,cur2)
-        getRealInDegree(cur,con,cur2)
+        #getRealInDegree(cur,con,cur2)
+        doOnlyOnce(cur,con)
 
     except (Exception) as error:
         print("Error while connecting to PostgreSQL", error)
@@ -212,11 +213,28 @@ def getRealInDegree(cur,con,cur2):
         unique_outerEdge = np.unique(temp)
 
         statement = "UPDATE unique_address " \
-                    "SET real_out_deg= " + str(len(unique_outerEdge)) + \
+                    "SET real_in_deg= " + str(len(unique_outerEdge)) + \
                     " WHERE address = " + "'" + row[0]+ "'"
         #print(statement)
 
         cur2.execute(statement)
         con.commit()
+
+
+def doOnlyOnce(cur,con):
+    statement = "UPDATE unique_address " \
+                "SET real_in_deg = 1" \
+                " WHERE in_degree = 1"
+
+    cur.execute(statement)
+    con.commit()
+
+    statement2 = "UPDATE unique_address " \
+                "SET real_out_deg = 1" \
+                " WHERE out_degree = 1"
+
+    cur.execute(statement2)
+    con.commit()
+
 
 main()
