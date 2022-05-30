@@ -214,6 +214,7 @@ def getRealInDegree(cur,con,cur2):
         statement = "UPDATE unique_address " \
                     "SET real_out_deg= " + str(len(unique_outerEdge)) + \
                     "WHERE address = " + "'" + row[0]+ "'"
+        print(statement)
 
         cur2.execute(statement)
         con.commit()
