@@ -22,9 +22,9 @@ def main():
 
         #connectionWithHostDoeOnlyOnce(cur, con)
         #connectionWithHost(cur, con, cur2)
-        #getRealOutDegree(cur,con,cur2)
-        #getRealInDegree(cur,con,cur2)
-        doOnlyOnce(cur,con)
+        getRealOutDegree(cur,con,cur2)
+        getRealInDegree(cur,con,cur2)
+        #doOnlyOnce(cur,con)
 
     except (Exception) as error:
         print("Error while connecting to PostgreSQL", error)
@@ -204,16 +204,16 @@ def getRealInDegree(cur,con,cur2):
         result2 = conn.query(query2)
 
         #print(result2)
-        all_trid_of_outEdge = list()
+        all_trid_of_inEdge = list()
 
         for x in result2:
-            all_trid_of_outEdge.append(x["txid"])
+            all_trid_of_inEdge.append(x["txid"])
 
-        temp = np.asarray(all_trid_of_outEdge)
-        unique_outerEdge = np.unique(temp)
+        temp = np.asarray(all_trid_of_inEdge)
+        unique_innerEdge = np.unique(temp)
 
         statement = "UPDATE unique_address " \
-                    "SET real_in_deg= " + str(len(unique_outerEdge)) + \
+                    "SET real_in_deg= " + str(len(unique_innerEdge)) + \
                     " WHERE address = " + "'" + row[0]+ "'"
         #print(statement)
 
