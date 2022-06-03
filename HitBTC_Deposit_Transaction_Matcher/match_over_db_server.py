@@ -82,7 +82,7 @@ def find_match(cur, con,cur2,cur3):
                 WHERE txid = '{1}'
                 '''.format(count, row[2])
 
-        print(statement3)
+        #print(statement3)
         cur3.execute(statement3)
         con.commit()
 
