@@ -38,7 +38,6 @@ def find_match(cur, con,cur2,cur3):
     00:00:00.000000' AND nr_match_usdt IS NULL
     '''
 
-    #print(selection)
     cur.execute(selection)
 
     for row in cur:
@@ -53,13 +52,10 @@ def find_match(cur, con,cur2,cur3):
             WHERE side = 's' AND timestamp BETWEEN '{0}' AND '{1}'
             '''.format(str(row[0]), str(timeborder))
 
-        # print(statement)
         cur2.execute(statement)
-        tem2 = cur2.fetchall()
-        # print(len(tem2))
-        # row -> is max value because it comes from the transaction
+
         count= 0
-        for row2 in tem2:
+        for row2 in cur2:
             # 2 % border | when doing market trading there could be a deviation of upto 2% when doing limit trading
             if row2[1] <= row[1] and row2[1] >= row[1] - (row[1] / 100) * 2:
                 diff = round((row2[2] - row[0]).total_seconds() / 60, 2)
@@ -71,7 +67,7 @@ def find_match(cur, con,cur2,cur3):
                 INSERT INTO matches (txid, time_diff, tran_qty,dep_qty, pair, tran_id)
                 VALUES ('{0}','{1}',{2},{3},'{4}',{5})'''.format(str(row[2]), str(diff), str(row2[1]), str(row[1]),
                                                                  "USDT",str(row2[0]))
-                # print(statement2)
+
                 cur3.execute(statement2)
                 con.commit()
 
@@ -82,7 +78,6 @@ def find_match(cur, con,cur2,cur3):
                 WHERE txid = '{1}'
                 '''.format(count, row[2])
 
-        #print(statement3)
         cur3.execute(statement3)
         con.commit()
 
