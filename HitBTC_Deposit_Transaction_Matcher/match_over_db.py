@@ -34,14 +34,14 @@ def find_match(cur, con, cur2, cur3):
     selection = '''
     SELECT time, qty, txid FROM incoming_transactions 
     WHERE qty IS NOT NULL AND time > '2019-04-01 
-    00:00:00.000000' 
+    00:00:00.000000' AND nr_of_matches IS NULL
     '''
 
     # print(selection)
     cur.execute(selection)
-    test = cur.fetchall()
-    print(len(test))
-    for row in test:
+    transaction_match = ('USDT', 'ETH', 'BUSD')
+
+    for row in cur:
 
         timebordertemp = row[0]
         timediff = datetime.timedelta(hours=2)
@@ -58,12 +58,12 @@ def find_match(cur, con, cur2, cur3):
         tem2 = cur2.fetchall()
         # print(len(tem2))
         # row -> is max value because it comes from the transaction
+        count= 0
         for row2 in tem2:
-            # print("t")
+            #print("x")
+            # 2 % border | when doing market trading there could be a deviation of upto 2% when doing limit trading
             if row2[1] <= row[1] and row2[1] >= row[1] - (row[1] / 100) * 2:
-                # print("Match between: ",row[2]," and: ",row2[0]," with DepositQTY : TransactionQTY ",row[1]," : ",
-                #      row2[1])
-
+                count= count+1
                 diff = round((row2[2] - row[0]).total_seconds() / 60, 2)
                 # print ("The transaction happend: ",round(diff.total_seconds()/60,2), " minuites after initial deposit")
                 statement2 = \
@@ -74,6 +74,18 @@ def find_match(cur, con, cur2, cur3):
                 # print(statement2)
                 cur3.execute(statement2)
                 con.commit()
+
+        #print("w")
+
+        statement3 = ''' 
+                UPDATE incoming_transactions
+                SET nr_of_matches = '{0}'
+                WHERE txid = '{1}'
+                '''.format(count, row[2])
+
+        #print(statement3)
+        cur3.execute(statement3)
+        con.commit()
 
         # print (statement)
 
