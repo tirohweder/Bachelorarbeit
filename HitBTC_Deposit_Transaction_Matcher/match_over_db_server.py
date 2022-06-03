@@ -31,10 +31,12 @@ def main():
 
 def find_match(cur, con,cur2,cur3):
 
-
-
-    selection ='SELECT time, qty, txid FROM incoming_transactions ' \
-                'WHERE qty IS NOT NULL'
+    #CHANGE USDT HERE -------------------------------------------------------------------------------------------------
+    selection = '''
+    SELECT time, qty, txid FROM incoming_transactions 
+    WHERE qty IS NOT NULL AND time > '2013-12-30 
+    00:00:00.000000' AND nr_match_usdt IS NULL
+    '''
 
     #print(selection)
     cur.execute(selection)
@@ -44,10 +46,10 @@ def find_match(cur, con,cur2,cur3):
         timebordertemp = row[0]
         timediff = datetime.timedelta(hours=2)
         timeborder = timebordertemp + timediff
-        # print("here")
+        # CHANGE USDT HERE --------------------------------------------------------------------------------------------
         statement = '''
             SELECT id, qty, timestamp 
-            FROM hitbtc_trans 
+            FROM hitbtc_trans_usdt 
             WHERE side = 's' AND timestamp BETWEEN '{0}' AND '{1}'
             '''.format(str(row[0]), str(timeborder))
 
@@ -62,6 +64,8 @@ def find_match(cur, con,cur2,cur3):
             if row2[1] <= row[1] and row2[1] >= row[1] - (row[1] / 100) * 2:
                 diff = round((row2[2] - row[0]).total_seconds() / 60, 2)
                 count = count + 1
+
+                #CHANGE USDT HERE -------------------------------------------------------------------------------------
                 statement2 = \
                     '''
                 INSERT INTO matches (txid, time_diff, tran_qty,dep_qty, pair, tran_id)
@@ -71,6 +75,7 @@ def find_match(cur, con,cur2,cur3):
                 cur3.execute(statement2)
                 con.commit()
 
+        #CHANGE USDT HERE ---------------------------------------------------------------------------------------------
         statement3 = ''' 
                 UPDATE incoming_transactions
                 SET nr_match_usdt = '{0}'
