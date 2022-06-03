@@ -15,7 +15,7 @@ def main():
         record = cur.fetchone()
         print("You are connected to - ", record, "\n")
 
-        find_match(cur, con,cur2)
+        find_match(cur, con,cur2,cur3)
 
     except (Exception) as error:
         print("Error while connecting to PostgreSQL", error)
