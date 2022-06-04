@@ -45,6 +45,7 @@ def find_match(cur, con,cur2,cur3):
         timebordertemp = row[0]
         timediff = datetime.timedelta(hours=2)
         timeborder = timebordertemp + timediff
+
         # CHANGE USDT HERE --------------------------------------------------------------------------------------------
         statement = '''
             SELECT id, qty, timestamp 
