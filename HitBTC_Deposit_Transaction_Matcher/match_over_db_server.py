@@ -56,9 +56,9 @@ def find_match(cur, con,cur2,cur3):
 
         count= 0
         for row2 in cur2:
-            print (row2[1], row[1])
+            #print (row2[1], row[1])
             # 2 % border | when doing market trading there could be a deviation of upto 2% when doing limit trading
-            if float(row2[1]) <= float(row[1]) and row2[1] >= row[1] - (row[1] / 100) * 2:
+            if float(row2[1]) <= float(row[1]) and float(row2[1]) >= float(row[1]) - (float(row[1]) / 100) * 2:
                 diff = round((row2[2] - row[0]).total_seconds() / 60, 2)
                 count = count + 1
 
