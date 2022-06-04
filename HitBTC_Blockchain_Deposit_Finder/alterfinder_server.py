@@ -83,10 +83,7 @@ def find_transactions(cur, con):
 
         result3= conn.query(query3)
 
-        for x in result3:
-            list_of_all_addr.append(x["address"])
-            #print(x["address"])
-            #print(list_of_all_addr)
+        list_of_all_addr.extend(x["address"] for x in result3)
     #print("got here ")
     temp= np.asarray(list_of_all_addr)
     print(temp.size)

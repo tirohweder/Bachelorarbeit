@@ -49,13 +49,14 @@ def find_match(cur, con,cur2,cur3):
         statement = '''
             SELECT id, qty, timestamp 
             FROM hitbtc_trans_usdt 
-            WHERE side = 's' AND timestamp BETWEEN '{0}' AND '{1}'
+            WHERE side = 'sell' AND timestamp BETWEEN '{0}' AND '{1}'
             '''.format(str(row[0]), str(timeborder))
 
         cur2.execute(statement)
 
         count= 0
         for row2 in cur2:
+            print ("w")
             # 2 % border | when doing market trading there could be a deviation of upto 2% when doing limit trading
             if row2[1] <= row[1] and row2[1] >= row[1] - (row[1] / 100) * 2:
                 diff = round((row2[2] - row[0]).total_seconds() / 60, 2)
