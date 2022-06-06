@@ -81,9 +81,14 @@ def find_qty(cur, con, cur2):
         result = conn.query(query)
 
         #print(query)
+        #more than 1 recieves relationship can exsist for one txid and address
+        total_sum= 0
+        for i in result:
+            total_sum= total_sum+i
 
-        statement = "UPDATE incoming_transactions " \
-                    "SET qty = " + str(result[0]["qty"] / 100000000) + \
+
+        statement = "UPDATE depositing_transactions " \
+                    "SET qty = " + str(total_sum / 100000000) + \
                     " WHERE txid= " + "'" + row[0] + "'" + " AND inc_address= " + "'" + row[3] + "'"
 
         #print(statement)
