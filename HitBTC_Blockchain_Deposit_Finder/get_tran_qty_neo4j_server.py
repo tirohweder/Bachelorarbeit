@@ -76,8 +76,11 @@ def find_qty(cur, con, cur2):
                 WHERE t.txid = '{0}' AND a.address = '{1}'
                 RETURN r.value AS qty
                 '''.format(row[0], row[3])
+        print(query)
 
         result = conn.query(query)
+
+        print(query)
 
         statement = "UPDATE incoming_transactions " \
                     "SET qty = " + str(result[0]["qty"] / 100000000) + \
