@@ -22,9 +22,10 @@ def main():
 
         #connectionWithHostDoeOnlyOnce(cur, con)
         #connectionWithHost(cur, con, cur2)
-        getRealOutDegree(cur,con,cur2)
-        getRealInDegree(cur,con,cur2)
+        #getRealOutDegree(cur,con,cur2)
+        #getRealInDegree(cur,con,cur2)
         #doOnlyOnce(cur,con)
+        real_connectionWithHost(cur,con,cur2)
 
     except (Exception) as error:
         print("Error while connecting to PostgreSQL", error)
@@ -144,6 +145,51 @@ def connectionWithHost(cur, con, cur2):
         #print(statement)
         cur2.execute(statement)
         con.commit()
+
+
+def real_connectionWithHost(cur, con, cur2):
+    conn = Neo4jConnection(uri='bolt://localhost:7687',user= 'trohwede', pwd='1687885@uma')
+    list_of_all_addr = []
+
+    #nimmt addresse und guckt welche transactions zu der wallet führen
+    query= '''
+    MATCH (t:Transaction)-[r:RECEIVES]->(tr:Address)
+    WHERE tr.address='1EEqRvnS7XqMoXDcaGL7bLS3hzZi1qUZm1'
+    RETURN t.txid AS t_txid
+    '''
+
+    result = conn.query(query)
+
+    for incoming_transactions in result:
+       #here i get all address that are part of a transaktion
+        query3 = '''
+        MATCH (a:Address)-[s:SENDS]->(tr:Transaction)
+        WHERE tr.txid='{0}'
+        RETURN a.address AS address
+        '''.format(incoming_transactions["t_txid"])
+
+        result3= conn.query(query3)
+        temp = list()
+        for x in result3:
+            temp.append(x["address"])
+
+        temp2 = np.asarray(temp)
+        unique_address_in_transaction = np.unique(temp2)
+
+        for x in unique_address_in_transaction:
+            list_of_all_addr.append(x)
+
+    counts = dict(Counter(list_of_all_addr))
+    duplicates = {key:value for key, value in counts.items()}
+    for keys in duplicates.keys():
+        statement = "UPDATE unique_address " \
+                     "SET real_conn_with_host= " + str(duplicates[keys]) + \
+                     " WHERE address = " + "'" + keys+ "'"
+
+        #print(statement)
+        cur2.execute(statement)
+        con.commit()
+
 
 def getRealOutDegree(cur,con,cur2):
     conn = Neo4jConnection(uri='bolt://localhost:7687', user='trohwede', pwd='1687885@uma')
