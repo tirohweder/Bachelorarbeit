@@ -99,13 +99,15 @@ def find_qty2(cur, con, cur2):
         edited= json.loads(response.text)
 
         value= 0
-        for i in edited["out"]:
-            try:
-                if i["addr"] == address:
-                     value= value + int(i["value"])
-            except Exception:
-                pass
-
+        try:
+            for i in edited["out"]:
+                try:
+                    if i["addr"] == address:
+                         value= value + int(i["value"])
+                except Exception:
+                    pass
+        except Exception:
+            pass
         #print(txid, address, value)
         statement = "UPDATE incoming_transactions " \
                     "SET qty = " + str(i["value"]) + \
