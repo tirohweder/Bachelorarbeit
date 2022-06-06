@@ -101,7 +101,7 @@ def find_qty2(cur, con, cur2):
 
         #print(txid, address, value)
         statement = "UPDATE depositing_transactions " \
-                    "SET qty = " + str(i["value"]) + \
+                    "SET qty = " + str(value) + \
                    " WHERE txid= " + "'" + txid + "'" + " AND inc_address= " + "'" + address + "'"
 
         # print(statement)
