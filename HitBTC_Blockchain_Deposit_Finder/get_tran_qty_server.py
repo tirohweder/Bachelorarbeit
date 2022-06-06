@@ -86,7 +86,7 @@ def find_qty2(cur, con, cur2):
     cur.execute(selection)
     for row in cur:
         txid = row[0]
-        address = row[3]
+        address = row[2]
 
         response = requests.get("https://blockchain.info/rawtx/" + txid)
         edited= json.loads(response.text)
