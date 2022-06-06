@@ -80,7 +80,7 @@ def find_qty(cur, con, cur2):
     #ssh.close()
 
 def find_qty2(cur, con, cur2):
-    selection = 'SELECT * FROM incoming_transactions ' \
+    selection = 'SELECT * FROM deposting_transactions ' \
                 "WHERE qty IS NULL"
 
     cur.execute(selection)
