@@ -84,7 +84,7 @@ def find_qty(cur, con, cur2):
         #more than 1 recieves relationship can exsist for one txid and address
         total_sum= 0
         for i in result:
-            total_sum= total_sum+i
+            total_sum= total_sum+i["qty"]
 
 
         statement = "UPDATE depositing_transactions " \
