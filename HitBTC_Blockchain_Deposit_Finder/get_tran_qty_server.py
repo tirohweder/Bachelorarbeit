@@ -84,31 +84,35 @@ def find_qty2(cur, con, cur2):
                 "WHERE qty IS NULL"
 
     cur.execute(selection)
-    for row in cur:
-        txid = row[0]
-        address = row[2]
 
-        response = requests.get("https://blockchain.info/rawtx/" + txid)
-        edited= json.loads(response.text)
+    try:
+        for row in cur:
+            txid = row[0]
+            address = row[2]
 
-        value= 0
-        try:
-            for i in edited["out"]:
-                try:
-                    if i["addr"] == address:
-                         value= value + int(i["value"])
-                except Exception:
-                    pass
-        except Exception:
-            pass
+            response = requests.get("https://blockchain.info/rawtx/" + txid)
+            edited= json.loads(response.text)
 
-        #print(txid, address, value)
-        statement = "UPDATE depositing_transactions " \
-                    "SET qty = " + str(value) + \
-                   " WHERE txid= " + "'" + txid + "'" + " AND inc_address= " + "'" + address + "'"
+            value= 0
+            try:
+                for i in edited["out"]:
+                    try:
+                        if i["addr"] == address:
+                             value= value + int(i["value"])
+                    except Exception:
+                        pass
+            except Exception:
+                pass
 
-        # print(statement)
+            #print(txid, address, value)
+            statement = "UPDATE depositing_transactions " \
+                        "SET qty = " + str(value) + \
+                       " WHERE txid= " + "'" + txid + "'" + " AND inc_address= " + "'" + address + "'"
 
-        cur2.execute(statement)
-        con.commit()
+            # print(statement)
+
+            cur2.execute(statement)
+            con.commit()
+    except Exception:
+        pass
 main()
