@@ -85,8 +85,9 @@ def find_qty2(cur, con, cur2):
 
     cur.execute(selection)
 
-    try:
-        for row in cur:
+
+    for row in cur:
+        try:
             txid = row[0]
             address = row[2]
 
@@ -113,6 +114,6 @@ def find_qty2(cur, con, cur2):
 
             cur2.execute(statement)
             con.commit()
-    except Exception:
-        pass
+        except Exception:
+            pass
 main()
