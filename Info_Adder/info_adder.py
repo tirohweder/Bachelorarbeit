@@ -22,7 +22,8 @@ def main():
         #connectionWithHostDoeOnlyOnce(cur, con)
         #connectionWithHost(con, cur, cur2)
         #getRealOutDegree(cur, con, cur2)
-        getRealInDegree(cur, con, cur2)
+        #getRealInDegree(cur, con, cur2)
+        getBlockHash(cur,con,cur2)
     except (Exception) as error:
         print("Error while connecting to PostgreSQL", error)
 
@@ -153,6 +154,37 @@ def connectionWithHost(cur, con, cur2):
         cur2.execute(statement)
         con.commit()
 
+
+
+
+def getBlockHash(cur, con,cur2):
+    conn = Neo4jConnection(uri='bolt://localhost:7687', user='trohwede', pwd='1687885@uma')
+
+
+    selection = 'SELECT txid FROM incoming_transactions ' \
+                'WHERE block_hash IS NULL'
+
+
+    cur.execute(selection)
+
+
+    #print("x")
+    for row in cur:
+        query2 = '''
+        MATCH (tr:Transaction)-[s:BELONGS_TO]->(b:Block)
+        WHERE tr.txid='{0}'
+        RETURN b.hash AS hash
+        '''.format(row[0])
+
+        result = conn.query(query2)
+
+        #print(result["hash"])
+        statement = "UPDATE incoming_transactions " \
+                    "SET block_hash = " + "'" +str(result[0]["hash"])+"'"  + \
+                    " WHERE txid= " + "'" + row[0] +"'"
+
+        cur2.execute(statement)
+        con.commit()
 
 def getRealOutDegree(cur,con,cur2):
     conn = Neo4jConnection(uri='bolt://localhost:7687', user='trohwede', pwd='1687885@uma')

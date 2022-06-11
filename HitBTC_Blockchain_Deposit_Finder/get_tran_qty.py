@@ -17,7 +17,7 @@ def main():
         record = cur.fetchone()
         print("You are connected to - ", record, "\n")
 
-        find_qty2(cur, con,cur2)
+        find_qty(cur, con,cur2)
 
     except (Exception) as error:
         print("Error while connecting to PostgreSQL", error[0])
@@ -47,11 +47,11 @@ def find_qty(cur, con,cur2):
     for row in cur:
         #print(row[0])
         txid = row[0]
-        block_hash = row[1]
-        address = row[3]
+        block_hash = row[5]
+        address = row[2]
 
         command = 'bitcoin-cli -rpcuser=bitcoin -rpcpassword=bitcoin getrawtransaction ' + txid + ' true ' + block_hash
-        print(command)
+        #print(command)
 
         stdin, stdout, stderr = ssh.exec_command(command)
 
@@ -91,30 +91,36 @@ def find_qty2(cur, con, cur2):
                 "WHERE qty IS NULL"
 
     cur.execute(selection)
+
+
     for row in cur:
-        txid = row[0]
-        address = row[3]
-
-        response = requests.get("https://blockchain.info/rawtx/" + txid)
-        edited= json.loads(response.text)
-
-        value= 0
         try:
-            for i in edited["out"]:
-                try:
-                    if i["addr"] == address:
-                         value= value + int(i["value"])
-                except Exception:
-                    pass
+            txid = row[0]
+            address = row[2]
+
+            response = requests.get("https://blockchain.info/rawtx/" + txid)
+            edited= json.loads(response.text)
+
+            value= 0
+            try:
+                for i in edited["out"]:
+                    try:
+                        if i["addr"] == address:
+                             value= value + int(i["value"])
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+
+            #print(txid, address, value)
+            statement = "UPDATE incoming_transactions " \
+                        "SET qty = " + str(value) + \
+                       " WHERE txid= " + "'" + txid + "'" + " AND inc_address= " + "'" + address + "'"
+
+            #print(statement)
+
+            cur2.execute(statement)
+            con.commit()
         except Exception:
             pass
-        #print(txid, address, value)
-        statement = "UPDATE incoming_transactions " \
-                    "SET qty = " + str(i["value"]) + \
-                   " WHERE txid= " + "'" + txid + "'" + " AND inc_address= " + "'" + address + "'"
-
-        # print(statement)
-
-        cur2.execute(statement)
-        con.commit()
 main()

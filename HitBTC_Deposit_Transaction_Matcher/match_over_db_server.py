@@ -33,7 +33,7 @@ def find_match(cur, con,cur2,cur3):
 
     #CHANGE USDT HERE -------------------------------------------------------------------------------------------------
     selection = '''
-    SELECT time, qty, txid FROM incoming_transactions 
+    SELECT time, qty, txid FROM real_depositing_transactions 
     WHERE qty IS NOT NULL AND time > '2013-12-30 
     00:00:00.000000' AND nr_match_usdt IS NULL
     '''

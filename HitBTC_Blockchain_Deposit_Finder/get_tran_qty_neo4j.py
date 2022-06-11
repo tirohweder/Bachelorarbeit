@@ -69,21 +69,23 @@ def find_qty(cur, con,cur2):
 
     cur.execute(selection)
 
-    for row in cur:
 
+
+    for row in cur:
+        #print(2)
         query='''
                 MATCH (t:Transaction)-[r:RECEIVES]->(a:Address)
                 WHERE t.txid = '{0}' AND a.address = '{1}'
                 RETURN r.value AS qty
-                '''.format(row[0],row[3])
+                '''.format(row[0],row[2])
         #print( query)
         result = conn.query(query)
 
         statement = "UPDATE incoming_transactions " \
                     "SET qty = " + str(result[0]["qty"]/100000000) + \
-                    " WHERE txid= " + "'" + row[0] + "'" + " AND inc_address= " + "'" + row[3] + "'"
+                    " WHERE txid= " + "'" + row[0] + "'" + " AND inc_address= " + "'" + row[2] + "'"
 
-        print (statement)
+        #print (statement)
         cur2.execute(statement)
         con.commit()
 
