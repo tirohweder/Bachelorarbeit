@@ -54,7 +54,7 @@ def find_match(cur, con,cur2,cur3):
             '''.format(str(row[0]), str(timeborder))
 
         cur2.execute(statement)
-        print("w")
+        #print("w")
         count= 0
         for row2 in cur2:
             #print (row2[1], row[1])
@@ -62,7 +62,7 @@ def find_match(cur, con,cur2,cur3):
             if float(row2[1]) <= float(row[1]) and float(row2[1]) >= float(row[1]) - (float(row[1]) / 100) * 2:
                 diff = round((row2[2] - row[0]).total_seconds() / 60, 2)
                 count = count + 1
-                print("x")
+                #print("x")
                 #CHANGE USDT HERE -------------------------------------------------------------------------------------
                 statement2 = \
                     '''
@@ -75,7 +75,7 @@ def find_match(cur, con,cur2,cur3):
 
         #CHANGE USDT HERE ---------------------------------------------------------------------------------------------
         statement3 = ''' 
-                UPDATE incoming_transactions
+                UPDATE real_deposit_transactions
                 SET nr_match_usdt = '{0}'
                 WHERE txid = '{1}'
                 '''.format(count, row[2])
