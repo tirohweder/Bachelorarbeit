@@ -33,7 +33,7 @@ def find_match(cur, con,cur2,cur3):
 
     #CHANGE USDT HERE -------------------------------------------------------------------------------------------------
     selection = '''
-    SELECT time, qty, txid FROM real_deposit_transactions 
+    SELECT time, qty, txid, inc_address FROM real_deposit_transactions 
     WHERE qty IS NOT NULL AND time > '2013-12-30 
     00:00:00.000000' AND nr_match_usdt IS NULL
     '''
@@ -77,8 +77,8 @@ def find_match(cur, con,cur2,cur3):
         statement3 = ''' 
                 UPDATE real_deposit_transactions
                 SET nr_match_usdt = '{0}'
-                WHERE txid = '{1}'
-                '''.format(count, row[2])
+                WHERE txid = '{1}' AND inc_address ='{2}'
+                '''.format(count, row[2], row[3])
 
         cur3.execute(statement3)
         con.commit()
