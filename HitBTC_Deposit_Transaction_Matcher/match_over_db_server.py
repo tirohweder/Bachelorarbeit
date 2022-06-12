@@ -70,7 +70,7 @@ def find_match(cur, con,cur2,cur3):
                 statement2 = \
                     '''
                 INSERT INTO matches (txid, time_diff, tran_qty,dep_qty, pair, tran_id, inc_address)
-                VALUES ('{0}','{1}',{2},{3},'{4}',{5})'''.format(str(row[2]), str(diff), str(row2[1]), str(row[1]),
+                VALUES ('{0}','{1}',{2},{3},'{4}',{5},{6})'''.format(str(row[2]), str(diff), str(row2[1]), str(row[1]),
                                                                  "USDT",str(row2[0]), row[3])
 
                 cur3.execute(statement2)
