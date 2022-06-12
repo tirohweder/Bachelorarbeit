@@ -43,15 +43,18 @@ def find_match(cur, con,cur2,cur3):
     for row in cur:
 
         timebordertemp = row[0]
-        timediff = datetime.timedelta(hours=2)
-        timeborder = timebordertemp + timediff
+        timediff1 = datetime.timedelta(minutes=10)
+        lowertime= timebordertemp+timediff1
+
+        timediff2 = datetime.timedelta(hours=3)
+        timeborder = timebordertemp + timediff2
 
         # CHANGE USDT HERE --------------------------------------------------------------------------------------------
         statement = '''
             SELECT id, qty, timestamp 
             FROM hitbtc_trans_usdt 
             WHERE side = 'sell' AND timestamp BETWEEN '{0}' AND '{1}'
-            '''.format(str(row[0]), str(timeborder))
+            '''.format(str(lowertime), str(timeborder))
 
         cur2.execute(statement)
         #print("w")
@@ -66,9 +69,9 @@ def find_match(cur, con,cur2,cur3):
                 #CHANGE USDT HERE -------------------------------------------------------------------------------------
                 statement2 = \
                     '''
-                INSERT INTO matches (txid, time_diff, tran_qty,dep_qty, pair, tran_id)
+                INSERT INTO matches (txid, time_diff, tran_qty,dep_qty, pair, tran_id, inc_address)
                 VALUES ('{0}','{1}',{2},{3},'{4}',{5})'''.format(str(row[2]), str(diff), str(row2[1]), str(row[1]),
-                                                                 "USDT",str(row2[0]))
+                                                                 "USDT",str(row2[0]), row[3])
 
                 cur3.execute(statement2)
                 con.commit()
