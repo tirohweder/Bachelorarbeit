@@ -8,7 +8,7 @@ from neo4j import GraphDatabase
 def main():
     try:
         con = psycopg2.connect(user="trohwede",
-                               password="1687885@uma",
+                               password="hallo123",
                                host="localhost",
                                port="5432",
                                database="trohwede")
