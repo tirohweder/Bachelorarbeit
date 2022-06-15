@@ -37,7 +37,7 @@ def finalCreate(cur, con):
     endingDate = startingDate - datetime.timedelta(days=1)
 
     currentStartDate = startingDate
-    traidingPair = ("ETHBTC")
+    traidingPair = ("BTCBUSD")
     count = 0;
 
     #set variable data abitrary
@@ -63,7 +63,7 @@ def finalCreate(cur, con):
                     else:
                         statementPart2 = statementPart2 + str(value) + ", "
 
-                statementPart1 = "INSERT INTO hitbtc_trans_eth(id, price, qty, side, timestamp) VALUES ("
+                statementPart1 = "INSERT INTO hitbtc_trans_busd(id, price, qty, side, timestamp) VALUES ("
                 statement = statementPart1 + statementPart2 + ")"
                 # print(statement)
                 cur.execute(statement)
