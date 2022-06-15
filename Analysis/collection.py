@@ -1,10 +1,14 @@
 import ssl
 
+import matplotlib
 import psycopg2
 import matplotlib.pyplot as plt
 import numpy as np
 from sqlalchemy import create_engine
+from sqlalchemy import sql
 import pandas as pds
+import dask.dataframe as dd
+
 
 def plotmatches():
     labels = ['0', '1', '2', '3', '4', '5']
@@ -40,52 +44,133 @@ def plotmatches():
 
 
 def plotmatchesbyqty():
-    #ssl_args = {'ssl': {'cert': '/path/to/client-cert',
-                        #'key': 'C:/Users/rohwe/Desktop/privatekeyssh2',
-                        #'ca': '/path/to/ca-cert'}}
-    #ssl_context = ssl.create_default_context(cafile='C/Users/rohwe/Desktop/privatekeyssh.ppk')
-    #ssl_context.verify_mode = ssl.CERT_REQUIRED
-
-    #ssl_args = {'ssl': {'cert': 'C:/Users/rohwe/Desktop/privatekeyssh2'}}
-
-
-
-    #ssl_args= {"ssl": 'C/Users/rohwe/Desktop/privatekeyssh.ppk'}
-
     engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
     conn = engine.connect()
 
-    dataFrame = pds.read_sql("SELECT * FROM \"hitbtc_trans_busd\"", conn)
+    statement = '''SELECT qty, COUNT(*) FROM "hitbtc_trans_busd" WHERE side= 'sell' GROUP BY qty'''
+
+    dataFrame = pds.read_sql(statement, conn)
+    dataFrame.plot(kind='scatter', x='qty', y='count')
+    plt.yscale('log')
+    plt.show()
     print(dataFrame)
 
-def main():
-    con= ""
-    try:
-        con = psycopg2.connect(user="trohwede",
-                               password="1687885@uma",
-                               host="localhost",
-                               port="8877",
-                               database="trohwede")
 
-        cur = con.cursor()
-        cur2= con.cursor()
-        cur3= con.cursor()
-        cur.execute("SELECT version();")
-        record = cur.fetchone()
-        print("You are connected to - ", record, "\n")
+def popop():
+    engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
+    conn = engine.connect()
 
-        cur.execute('''SELECT * FROM hitbtc_trans_busd''')
+    statement = '''SELECT qty, COUNT(*) FROM "hitbtc_trans_busd" WHERE qty <=1 AND side= 'sell' GROUP BY qty HAVING 
+               COUNT(*)> 380'''
 
-    except (Exception) as error:
-        print("Error while connecting to PostgreSQL", error)
+    dataFrame = dd.read_sql(statement, conn)
+    dataFrame.plot(kind='bar', x='qty', y='count')
+    # plt.yscale('log')
+    # ax.get_xaxis().set_major_formatter(matplotlib.ticker.FuncFormatter(lambda x, p: format(float(x))))
+    # plt.ticklabel_format(style='plain')
+    plt.show()
 
-    finally:
-        if (con):
-            cur.close()
-            cur2.close()
-            cur3.close()
-            con.close()
-            print("PostgreSQL connection is closed")
+    print(dataFrame)
 
 
-plotmatchesbyqty()
+def plotmatchesbyqty2():
+    # engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
+    # conn = engine.connect()
+
+    statement = '''SELECT id, qty, COUNT(*) FROM "hitbtc_trans_busd" WHERE side= 'sell' GROUP BY qty,id'''
+
+    dataFrame = dd.read_sql('hitbtc_trans_busd', 'postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede',
+                            npartitions=10, index_col='id')
+    dataFrame.plot(kind='scatter', x='qty', y='count')
+    plt.yscale('log')
+    plt.show()
+    print(dataFrame)
+
+
+def plotmatchesbyqty3():
+    engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
+    conn = engine.connect()
+
+    statement = '''SELECT qty, COUNT(*) FROM "hitbtc_trans_usdt" WHERE side= 'sell' GROUP BY qty HAVING COUNT(
+    *)>412455'''
+
+    dataFrame = pds.read_sql(statement, conn, columns=list('12345'))
+    ax = dataFrame.plot(kind='bar', x='qty', y='count', figsize=(10, 5))
+    # ax.margins(0.2)
+    plt.subplots_adjust(bottom=0.2)
+    plt.yscale('log')
+    plt.show()
+    print(dataFrame)
+
+
+def plotmatchesbyqty4():
+    engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
+    conn = engine.connect()
+
+    statement = '''SELECT qty,SUM(nr_match_usdt3_2) as sum_e FROM "real_deposit_transactions" GROUP BY qty HAVING SUM(nr_match_usdt3_2) >
+                                                                                               178640 '''
+
+    dataFrame = pds.read_sql(statement, conn)
+    ax = dataFrame.plot(kind='bar', x='qty', y='sum_e', figsize=(10, 5))
+    ax.margins(0.2)
+    plt.subplots_adjust(bottom=0.2)
+    plt.yscale('log')
+    plt.show()
+    print(dataFrame)
+
+
+
+
+#Mapping
+def plotmatchesbyqty5():
+    engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
+    conn = engine.connect()
+
+
+
+    statement = '''SELECT qty,SUM(nr_match_usdt3_0) as sum_e FROM "real_deposit_transactions" GROUP BY qty HAVING 
+    SUM(nr_match_usdt3_2) >
+                                                                                               178640 '''
+    dataFrame = pds.read_sql(statement, conn)
+
+    statement2 = '''SELECT qty, COUNT(*) FROM "hitbtc_trans_usdt" WHERE side= 'sell' GROUP BY qty HAVING COUNT(
+                    *)>412455'''
+    dataFrame2 = pds.read_sql(statement2, conn)
+
+
+    fig, (ax1,ax2) = plt.subplots(nrows=1, ncols=2, figsize=(10,5))
+    dataFrame2.plot(kind='bar', x='qty', y='count',ax=ax1,subplots=True)
+    dataFrame.plot(kind='bar', x='qty', y='sum_e',ax=ax2,subplots=True)
+
+
+
+
+    plt.subplots_adjust(bottom=0.2)
+    plt.yscale('log')
+    plt.show()
+    print(dataFrame)
+
+
+#merging the 2 dataframes together
+def plotmatchesbyqty6():
+    engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
+    conn = engine.connect()
+
+
+
+    statement = '''SELECT qty,SUM(nr_match_usdt1_2) as sum_e FROM "real_deposit_transactions" GROUP BY qty HAVING 
+                   SUM(nr_match_usdt1_2) >0 '''
+    dataFrame = pds.read_sql(statement, conn)
+
+    statement2 = '''SELECT qty, COUNT(*) FROM "hitbtc_trans_usdt" WHERE side= 'sell' GROUP BY qty HAVING COUNT(
+                    *)>0'''
+    dataFrame2 = pds.read_sql(statement2, conn)
+
+    merged_df = dataFrame2.merge(dataFrame, how= 'left', on =['qty'])
+
+    less_df = merged_df[merged_df['sum_e'].notna()]
+    less_df = less_df.reset_index()
+    print("There are ",len(merged_df.index)," different transaction quantities, ", len(less_df.index))
+    print(less_df)
+
+plotmatchesbyqty6()
