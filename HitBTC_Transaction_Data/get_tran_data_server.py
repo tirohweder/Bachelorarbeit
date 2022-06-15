@@ -34,10 +34,10 @@ def finalCreate(cur, con):
                                      int(parameters['till'][11:13]), int(parameters['till'][14:16]),
                                      int(parameters['till'][17:19]),
                                      int(parameters['till'][20:23]))
-    endingDate = startingDate - datetime.timedelta(days=1)
+    endingDate = startingDate - datetime.timedelta(weeks=200)
 
     currentStartDate = startingDate
-    traidingPair = ("BTCBUSD")
+    traidingPair = ("BTCUSDC")
     count = 0;
 
     #set variable data abitrary
@@ -63,7 +63,7 @@ def finalCreate(cur, con):
                     else:
                         statementPart2 = statementPart2 + str(value) + ", "
 
-                statementPart1 = "INSERT INTO hitbtc_trans_busd(id, price, qty, side, timestamp) VALUES ("
+                statementPart1 = "INSERT INTO hitbtc_trans_usdc(id, price, qty, side, timestamp) VALUES ("
                 statement = statementPart1 + statementPart2 + ")"
                 # print(statement)
                 cur.execute(statement)
