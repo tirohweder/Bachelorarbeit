@@ -10,6 +10,7 @@ import pandas as pds
 import dask.dataframe as dd
 
 
+# Number of matches
 def plotmatches():
     labels = ['0', '1', '2', '3', '4', '5']
     x = np.arange(len(labels))
@@ -107,7 +108,7 @@ def plotmatchesbyqty4():
     engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
     conn = engine.connect()
 
-    statement = '''SELECT qty,SUM(nr_match_usdt3_2) as sum_e FROM "real_deposit_transactions" GROUP BY qty HAVING SUM(nr_match_usdt3_2) >
+    statement = '''SELECT qty,SUM(nr_match_usdt3_2) as sum_e FROM "deposit_transactions" GROUP BY qty HAVING SUM(nr_match_usdt3_2) >
                                                                                                178640 '''
 
     dataFrame = pds.read_sql(statement, conn)
@@ -119,31 +120,22 @@ def plotmatchesbyqty4():
     print(dataFrame)
 
 
-
-
-#Mapping
+# Showing
 def plotmatchesbyqty5():
     engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
     conn = engine.connect()
 
-
-
-    statement = '''SELECT qty,SUM(nr_match_usdt3_0) as sum_e FROM "real_deposit_transactions" GROUP BY qty HAVING 
-    SUM(nr_match_usdt3_2) >
-                                                                                               178640 '''
+    statement = '''SELECT qty,SUM(nr_match_usdt3_0) as sum_e FROM "deposit_transactions" GROUP BY qty HAVING 
+    SUM(nr_match_usdt3_2) >178640 '''
     dataFrame = pds.read_sql(statement, conn)
 
     statement2 = '''SELECT qty, COUNT(*) FROM "hitbtc_trans_usdt" WHERE side= 'sell' GROUP BY qty HAVING COUNT(
                     *)>412455'''
     dataFrame2 = pds.read_sql(statement2, conn)
 
-
-    fig, (ax1,ax2) = plt.subplots(nrows=1, ncols=2, figsize=(10,5))
-    dataFrame2.plot(kind='bar', x='qty', y='count',ax=ax1,subplots=True)
-    dataFrame.plot(kind='bar', x='qty', y='sum_e',ax=ax2,subplots=True)
-
-
-
+    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(10, 5))
+    dataFrame2.plot(kind='bar', x='qty', y='count', ax=ax1, subplots=True)
+    dataFrame.plot(kind='bar', x='qty', y='sum_e', ax=ax2, subplots=True)
 
     plt.subplots_adjust(bottom=0.2)
     plt.yscale('log')
@@ -151,26 +143,62 @@ def plotmatchesbyqty5():
     print(dataFrame)
 
 
-#merging the 2 dataframes together
-def plotmatchesbyqty6():
+# For the qty x, there are y transactions in hitbtc_trans_x and in real_deposit_transaction total matches found
+def df_of_tran_sum():
     engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
     conn = engine.connect()
 
-
-
-    statement = '''SELECT qty,SUM(nr_match_usdt1_2) as sum_e FROM "real_deposit_transactions" GROUP BY qty HAVING 
-                   SUM(nr_match_usdt1_2) >0 '''
+    statement = '''SELECT qty,SUM(nr_match_usdt1_0) as sum_e FROM "deposit_transactions" GROUP BY qty HAVING 
+                   SUM(nr_match_usdt1_0) >0 '''
     dataFrame = pds.read_sql(statement, conn)
-
     statement2 = '''SELECT qty, COUNT(*) FROM "hitbtc_trans_usdt" WHERE side= 'sell' GROUP BY qty HAVING COUNT(
                     *)>0'''
     dataFrame2 = pds.read_sql(statement2, conn)
 
-    merged_df = dataFrame2.merge(dataFrame, how= 'left', on =['qty'])
+    merged_df = dataFrame2.merge(dataFrame, how='left', on=['qty'])
 
     less_df = merged_df[merged_df['sum_e'].notna()]
     less_df = less_df.reset_index()
-    print("There are ",len(merged_df.index)," different transaction quantities, ", len(less_df.index))
+    print("There are ", len(merged_df.index), " different transaction quantities, ", len(less_df.index))
     print(less_df)
 
-plotmatchesbyqty6()
+
+# For the qty x, there are y transactions in hitbtc_trans_x and in real_deposit_transaction total matches found GRAPH
+def df_tran_sum_graph():
+    engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
+    conn = engine.connect()
+
+    statement = '''SELECT qty,SUM(nr_match_usdt1_0) as sum_e FROM "deposit_transactions" GROUP BY qty HAVING 
+                   SUM(nr_match_usdt1_0) >0 '''
+    dataFrame = pds.read_sql(statement, conn)
+    statement2 = '''SELECT qty, COUNT(*) FROM "hitbtc_trans_usdt" WHERE side= 'sell' GROUP BY qty HAVING COUNT(
+                    *)>0'''
+    dataFrame2 = pds.read_sql(statement2, conn)
+
+    merged_df = dataFrame2.merge(dataFrame, how='left', on=['qty'])
+
+    less_df = merged_df[merged_df['sum_e'].notna()]
+    less_df = less_df.reset_index()
+
+    sum_count = less_df['count'].sum()
+    sum_sum_e = less_df['sum_e'].sum()
+
+    less_df['count'] = (less_df['count'] / sum_count) * 100
+    less_df['sum_e'] = (less_df['sum_e'] / sum_sum_e) * 100
+    print(less_df)
+    print(less_df.sort_values(by=['count']))
+    print(less_df.sort_values(by=['sum_e']))
+
+    less_df.drop('index', axis=1, inplace=True)
+
+    # CHANGE THIS BELOW FOR EVERY VALUE
+    less_df.drop(less_df[less_df.qty > 2.5].index, inplace=True)
+
+    less_df.plot(x='qty')
+    plt.yscale('log')
+    plt.show()
+
+
+df_tran_sum_graph()
+# plotmatches()
+#plotmatchesbyqty5()
