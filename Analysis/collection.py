@@ -199,6 +199,158 @@ def df_tran_sum_graph():
     plt.show()
 
 
-df_tran_sum_graph()
+def table_printer():
+    engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
+    conn = engine.connect()
+    print("Sum Matches")
+    statement = '''SELECT COUNT(*) FROM matches_eth '''
+    nr_matches = conn.execute(statement)
+    for w in nr_matches:
+        print("3 2 : ", f"{w['count']:,}")
+    statement = '''SELECT COUNT(*) FROM matches_eth WHERE time_diff < 120'''
+    nr_matches = conn.execute(statement)
+    for w in nr_matches:
+        print("2 2 : ", f"{w['count']:,}")
+    statement = '''SELECT COUNT(*) FROM matches_eth WHERE time_diff < 60'''
+    nr_matches = conn.execute(statement)
+    for w in nr_matches:
+        print("1 2 : ", f"{w['count']:,}")
+
+    statement = '''SELECT COUNT(*) FROM matches_eth WHERE tran_qty = dep_qty'''
+    nr_matches = conn.execute(statement)
+    for w in nr_matches:
+        print("3 0 : ", f"{w['count']:,}")
+    statement = '''SELECT COUNT(*) FROM matches_eth WHERE time_diff < 120 AND  tran_qty = dep_qty'''
+    nr_matches = conn.execute(statement)
+    for w in nr_matches:
+        print("2 0 : ", f"{w['count']:,}")
+    statement = '''SELECT COUNT(*) FROM matches_eth WHERE time_diff < 60 AND  tran_qty = dep_qty'''
+    nr_matches = conn.execute(statement)
+    for w in nr_matches:
+        print("1 0 : ", f"{w['count']:,}")
+
+    print("#Matches(>0)")
+    statement = '''SELECT COUNT(*) FROM deposit_transactions WHERE match_eth_3_2 != 0'''
+    nr_matches = conn.execute(statement)
+    for w in nr_matches:
+        print("3 2 : ", f"{w['count']:,}")
+        m32 = w['count']
+    statement = '''SELECT COUNT(*) FROM deposit_transactions WHERE match_eth_2_2 != 0'''
+    nr_matches = conn.execute(statement)
+    for w in nr_matches:
+        print("2 2 : ", f"{w['count']:,}")
+        m22 = w['count']
+    statement = '''SELECT COUNT(*) FROM deposit_transactions WHERE match_eth_1_2 != 0'''
+    nr_matches = conn.execute(statement)
+    for w in nr_matches:
+        print("1 2 : ", f"{w['count']:,}")
+        m12 = w['count']
+
+    statement = '''SELECT COUNT(*) FROM deposit_transactions WHERE match_eth_3_0 != 0'''
+    nr_matches = conn.execute(statement)
+    for w in nr_matches:
+        print("3 0 : ", f"{w['count']:,}")
+        m30 = w['count']
+    statement = '''SELECT COUNT(*) FROM deposit_transactions  WHERE match_eth_2_0 != 0'''
+    nr_matches = conn.execute(statement)
+    for w in nr_matches:
+        print("2 0 : ", f"{w['count']:,}")
+        m20 = w['count']
+    statement = '''SELECT COUNT(*) FROM deposit_transactions WHERE match_eth_1_0 != 0'''
+    nr_matches = conn.execute(statement)
+    for w in nr_matches:
+        print("1 0 : ", f"{w['count']:,}")
+        m10 = w['count']
+
+    print("%")
+    # USDT/ETH 2117028
+    # USDC 1457894
+    total = 2117028
+    print("3 2 : ", round((m32 / total) * 100, 2))
+    print("2 2 : ", round((m22 / total) * 100, 2))
+    print("1 2 : ", round((m12 / total) * 100, 2))
+    print("3 0 : ", round((m30 / total) * 100, 2))
+    print("2 0 : ", round((m20 / total) * 100, 2))
+    print("1 0 : ", round((m10 / total) * 100, 2))
+
+    print("Avg. Matches")
+    statement = '''SELECT AVG(match_eth_3_2) FROM deposit_transactions WHERE match_eth_3_2 !=0'''
+    nr_matches = conn.execute(statement)
+    for w in nr_matches:
+        print("3 2 : ", round(float(w['avg']),2))
+    statement = '''SELECT AVG(match_eth_2_2) FROM deposit_transactions WHERE match_eth_2_2 !=0 '''
+    nr_matches = conn.execute(statement)
+    for w in nr_matches:
+        print("2 2 : ",round(float(w['avg']),2))
+    statement = '''SELECT AVG(match_eth_1_2) FROM deposit_transactions WHERE match_eth_1_2 !=0 '''
+    nr_matches = conn.execute(statement)
+    for w in nr_matches:
+        print("1 2 : ", round(float(w['avg']),2))
+
+    statement = '''SELECT AVG(match_eth_3_0) FROM deposit_transactions WHERE match_eth_3_0 !=0 '''
+    nr_matches = conn.execute(statement)
+    for w in nr_matches:
+        print("3 0 : ", round(float(w['avg']),2))
+    statement = '''SELECT AVG(match_eth_2_0) FROM deposit_transactions WHERE match_eth_2_0 != 0 '''
+    nr_matches = conn.execute(statement)
+    for w in nr_matches:
+        print("2 0 : ", round(float(w['avg']),2))
+    statement = '''SELECT AVG(match_eth_1_0) FROM deposit_transactions WHERE match_eth_1_0 !=0 '''
+    nr_matches = conn.execute(statement)
+    for w in nr_matches:
+        print("1 0 : ", round(float(w['avg']),2))
+
+    print("Matches = 1")
+    statement = '''SELECT COUNT(*) FROM deposit_transactions WHERE match_eth_3_2 = 1'''
+    nr_matches = conn.execute(statement)
+    for w in nr_matches:
+        print("3 2 : ", f"{w['count']:,}")
+        mm32 = w['count']
+    statement = '''SELECT COUNT(*) FROM deposit_transactions WHERE match_eth_2_2 = 1'''
+    nr_matches = conn.execute(statement)
+    for w in nr_matches:
+        print("2 2 : ", f"{w['count']:,}")
+        mm22 = w['count']
+    statement = '''SELECT COUNT(*) FROM deposit_transactions WHERE match_eth_1_2 = 1'''
+    nr_matches = conn.execute(statement)
+    for w in nr_matches:
+        print("1 2 : ", f"{w['count']:,}")
+        mm12 = w['count']
+
+    statement = '''SELECT COUNT(*) FROM deposit_transactions WHERE match_eth_3_0 = 1'''
+    nr_matches = conn.execute(statement)
+    for w in nr_matches:
+        print("3 0 : ", f"{w['count']:,}")
+        mm30 = w['count']
+    statement = '''SELECT COUNT(*) FROM deposit_transactions  WHERE match_eth_2_0 = 1'''
+    nr_matches = conn.execute(statement)
+    for w in nr_matches:
+        print("2 0 : ", f"{w['count']:,}")
+        mm20 = w['count']
+    statement = '''SELECT COUNT(*) FROM deposit_transactions WHERE match_eth_1_0 = 1'''
+    nr_matches = conn.execute(statement)
+    for w in nr_matches:
+        print("1 0 : ", f"{w['count']:,}")
+        mm10 = w['count']
+
+
+    print("% x1")
+    print("3 2 : ", round((mm32 / m32) * 100, 2))
+    print("2 2 : ", round((mm22 / m22) * 100, 2))
+    print("1 2 : ", round((mm12 / m12) * 100, 2))
+    print("3 0 : ", round((mm30 / m30) * 100, 2))
+    print("2 0 : ", round((mm20 / m20) * 100, 2))
+    print("1 0 : ", round((mm10 / m10) * 100, 2))
+
+    print("% x2")
+    print("3 2 : ", round((mm32 / total) * 100, 2))
+    print("2 2 : ", round((mm22 / total) * 100, 2))
+    print("1 2 : ", round((mm12 / total) * 100, 2))
+    print("3 0 : ", round((mm30 / total) * 100, 2))
+    print("2 0 : ", round((mm20 / total) * 100, 2))
+    print("1 0 : ", round((mm10 / total) * 100, 2))
+
+# df_tran_sum_graph()
 # plotmatches()
-#plotmatchesbyqty5()
+# plotmatchesbyqty5()
+table_printer()
