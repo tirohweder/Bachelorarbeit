@@ -17,7 +17,7 @@ import seaborn as sns
 import plotly.graph_objects as go
 import plotly.express as px
 import math
-
+from bioinfokit.analys import stat, get_data
 
 #Prints Table 4.x
 def table_printer():
@@ -210,8 +210,12 @@ def table_avg_time2():
     list2 = ['3_2', '2_2', '1_2', '3_0', '2_0', '1_0']
     list3 = [180,120,60,180,120,60]
     list4 = [[1,0,0],[0,1,0],[0,0,1]]
+    list5 = [95,65,35,95,65,35]
     engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
     conn = engine.connect()
+
+    for_test= []
+    expected=[95,65,35,95,65,35,95,65,35,95,65,35,95,65,35,95,65,35]
 
     for id,i in enumerate(list1):
         print(i, ": ")
@@ -220,8 +224,9 @@ def table_avg_time2():
             # For some reason with beta = 0, the select gives double entries, fixed by grouping unique and selecting
             # everything then. i dont know why and i dont care its fixed
             statement = '''
-            SELECT AVG(te), COUNT(*)FROM(
-            SELECT AVG(time_diff) as te, COUNT(*)
+            SELECT stddev(te) as dev, AVG(te) as avg_time_diff, COUNT(*) as unique_hits , AVG(tw) as avg_usd_total,
+            AVG(tx) as avg_qty FROM(
+            SELECT AVG(time_diff) as te, COUNT(*), AVG(usd_total) as tw, AVG(hitbtc_trans_{0}.qty) as tx
             FROM matches_{0}
             INNER JOIN deposit_transactions
             on matches_{0}.inc_address = deposit_transactions.inc_address
@@ -230,13 +235,42 @@ def table_avg_time2():
             AND deposit_transactions.match_eth_{1} = {4}
             AND deposit_transactions.match_usdc_{1} = {5}
             AND time_diff <= {2}
+            INNER JOIN hitbtc_trans_{0}
+            on matches_{0}.tran_id = hitbtc_trans_{0}.id
             GROUP BY matches_{0}.inc_address,matches_{0}.txid) as cw
             ;
             '''.format(i,j,list3[idx], list4[id][0], list4[id][1],list4[id][2])
 
-            print(statement)
+            #print(statement)
             df = pds.read_sql(statement, conn)
-            print("           ", j, f"{df['count'][0]:,}", round((df['avg'][0]), 2))
+            print("           ", j, f"{df['unique_hits'][0]:,}", round((df['avg_time_diff'][0]), 2),
+                  round(df['avg_usd_total'][0],2),f"{df['avg_qty'][0]:.4f}",round(df['dev'][0],2))
+
+
+            statement2= '''
+            SELECT AVG(time_diff) as time_diff, COUNT(*)
+            FROM matches_{0}
+            INNER JOIN deposit_transactions
+            on matches_{0}.inc_address = deposit_transactions.inc_address
+            AND matches_{0}.txid = deposit_transactions.txid
+            AND deposit_transactions.match_usdt_{1} = {3}
+            AND deposit_transactions.match_eth_{1} = {4}
+            AND deposit_transactions.match_usdc_{1} = {5}
+            AND time_diff <= {2}
+            GROUP BY matches_{0}.inc_address,matches_{0}.txid
+            '''.format(i,j,list3[idx], list4[id][0], list4[id][1],list4[id][2])
+            df2 = pds.read_sql(statement2, conn)
+            #print(df2['time_diff'].mean())
+            result= stats.ttest_1samp(a=df2, popmean=list5[idx])
+            p_value= result[1][0]
+            if( p_value<=0.05):
+                print("Difference: YES", p_value)
+            else:
+                print("Difference: NO",p_value)
+
+
+    print(sum(expected)-sum(for_test))
+
 
 #Prints Figure x
 def df_tran_sum_graph_all():
@@ -660,23 +694,91 @@ def benfords_law():
     df_f.sort_index(inplace=True)
     print(df_f)
 
-    ax= df_f.plot.bar()
+    ax= df_f.plot.bar(color='#4d6910')
     df_b = pd.DataFrame({'Benford´s Law':[30.1,17.6,12.5,9.7,7.9,6.7,5.8,5.1,4.6]})
-    df_b.plot(ax=ax, marker='o', color='r', label='')
+    df_b.plot(ax=ax, marker='o', color='#ffa600', label='')
     plt.ylabel("Probability")
     plt.xlabel("Leading Digit")
     plt.show()
 
     print(chisquare(df_f.values, f_exp=[30.1,17.6,12.5,9.7,7.9,6.7,5.8,5.1,4.6]) )
 
+def benfords_law2():
+    engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
+    conn = engine.connect()
+    statement = '''SELECT qty FROM hitbtc_trans_usdc WHERE side='sell' '''
 
 
-table_avg_time2()
+    statement2 = '''SELECT qty FROM deposit_transactions WHERE match_usdc_1_2 != 0''' # Matches > 0
+
+    statement3 = '''SELECT dep_qty as qty FROM "matches_usdc" WHERE time_diff < 60 '''
+
+    statement4 = '''SELECT txid, inc_address,dep_qty as qty, COUNT(*)  FROM "matches_usdc" GROUP BY dep_qty, 
+        inc_address, txid HAVING COUNT(*)=1 ''' #Matches = 1
+
+    df = pds.read_sql(statement, conn)
+    df['qty'] = (df['qty']) * 1000000
+    df['leading_digit'] = df['qty'].astype(str).str[0].astype(int)
+    df_f= df['leading_digit'].value_counts(normalize=True)*100
+    df_f.sort_index(inplace=True)
+
+
+    df2 = pds.read_sql(statement2, conn)
+    df2['qty'] = (df2['qty']) * 1000000
+    df2['leading_digit'] = df2['qty'].astype(str).str[0].astype(int)
+    df_f2= df2['leading_digit'].value_counts(normalize=True)*100
+    df_f2.sort_index(inplace=True)
+
+    df3 = pds.read_sql(statement3, conn)
+    df3['qty'] = (df3['qty']) * 1000000
+    df3['leading_digit'] = df3['qty'].astype(str).str[0].astype(int)
+    df_f3= df3['leading_digit'].value_counts(normalize=True)*100
+    df_f3.sort_index(inplace=True)
+
+    df_b = pd.DataFrame({'Benford´s Law': [30.1, 17.6, 12.5, 9.7, 7.9, 6.7, 5.8, 5.1, 4.6]})
+
+    fig, (ax1,ax2,ax3)= plt.subplots(1, 3,sharey=True)
+    fig.set_size_inches(15, 7.5)
+
+    ax1.bar(df_f.index.values, df_f.values, color='#4d6910')
+    ax1.plot(df_f.index.values,df_b.values, marker='o', color='#ffa600', label='')
+    ax1.set_xlabel("Leading Digit")
+    ax1.set_ylabel("Probability")
+    ax1.set_title("HitBTC USDC Transactions")
+
+    #print(df_f2.index.values)
+    ax2.bar(df_f2.index.values, df_f2.values, color='#4d6910')
+    ax2.plot(df_f2.index.values,df_b.values, marker='o', color='#ffa600', label='')
+    ax2.set_xlabel("Leading Digit")
+    ax2.set_title("Matches USDC - > 0")
+
+    ax3.bar(df_f3.index.values, df_f3.values, color='#4d6910')
+    ax3.plot(df_f2.index.values,df_b.values, marker='o', color='#ffa600', label='')
+    ax3.set_xlabel("Leading Digit")
+    ax3.set_title("Matches USDC - All")
+
+
+
+    df4 = pds.read_sql(statement4, conn)
+    df4['qty'] = (df4['qty']) * 1000000
+    df4['leading_digit'] = df4['qty'].astype(str).str[0].astype(int)
+    df_f4= df4['leading_digit'].value_counts(normalize=True)*100
+    df_f4.sort_index(inplace=True)
+
+    print(chisquare(df_f.values, f_exp=[30.1, 17.6, 12.5, 9.7, 7.9, 6.7, 5.8, 5.1, 4.6]))
+    print(chisquare(df_f2.values, f_exp=[30.1, 17.6, 12.5, 9.7, 7.9, 6.7, 5.8, 5.1, 4.6]))
+    print(chisquare(df_f3.values, f_exp=[30.1, 17.6, 12.5, 9.7, 7.9, 6.7, 5.8, 5.1, 4.6]))
+    print(chisquare(df_f4.values, f_exp=[30.1, 17.6, 12.5, 9.7, 7.9, 6.7, 5.8, 5.1, 4.6]))
+    plt.show()
+
+    #print(chisquare(df_f.values, f_exp=[30.1,17.6,12.5,9.7,7.9,6.7,5.8,5.1,4.6]) )
+
+#table_avg_time2()
 #bubble_x_x()
 #tran_usd_size()
 #df_of_tran_sum()
 #df_tran_sum_graph_single()
-#benfords_law()
+benfords_law2()
 #df_tran_sum_graph_all()
 #plotNrOfMatches()
 #plotmatchesbyqty5(

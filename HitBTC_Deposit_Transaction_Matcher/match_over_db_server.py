@@ -51,8 +51,8 @@ def find_match(cur, con,cur2,cur3):
 
         # CHANGE USDT HERE --------------------------------------------------------------------------------------------
         statement = '''
-            SELECT id, qty, timestamp 
-            FROM hitbtc_trans_usdc 
+            SELECT id, trade_size_btc, timestamp 
+            FROM hitbtc_trans_eth 
             WHERE side = 'sell' AND timestamp BETWEEN '{0}' AND '{1}'
             '''.format(str(lowertime), str(timeborder))
 
@@ -66,7 +66,7 @@ def find_match(cur, con,cur2,cur3):
                 #CHANGE USDT HERE -------------------------------------------------------------------------------------
                 statement2 = \
                     '''
-                INSERT INTO matches_usdc (txid, time_diff, tran_qty,dep_qty, pair, tran_id, inc_address)
+                INSERT INTO matches_eth_2 (txid, time_diff, tran_qty,dep_qty, pair, tran_id, inc_address)
                 VALUES ('{0}','{1}',{2},{3},'{4}',{5},'{6}')'''.format(str(row[2]), str(diff), str(row2[1]),
                                                                         str(row[1]),
                                                                  "USDC",str(row2[0]), row[3])
@@ -77,7 +77,7 @@ def find_match(cur, con,cur2,cur3):
         #CHANGE USDT HERE ---------------------------------------------------------------------------------------------
         statement3 = ''' 
                 UPDATE deposit_transactions
-                SET match_usdc_3_2 = '{0}'
+                SET match_usdc_3_2_2 = '{0}'
                 WHERE txid = '{1}' AND inc_address ='{2}'
                 '''.format(count, row[2], row[3])
 
