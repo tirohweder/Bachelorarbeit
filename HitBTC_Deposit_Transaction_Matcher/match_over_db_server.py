@@ -34,7 +34,7 @@ def find_match(cur, con,cur2,cur3):
     #CHANGE USDT HERE -------------------------------------------------------------------------------------------------
     selection = '''
     SELECT time, qty, txid, inc_address FROM deposit_transactions 
-    WHERE match_usdc_3_2_2 IS NULL
+    WHERE match_eth_3_2_2 IS NULL
     '''
 
     cur.execute(selection)
