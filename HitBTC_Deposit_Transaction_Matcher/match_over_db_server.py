@@ -77,7 +77,7 @@ def find_match(cur, con,cur2,cur3):
         #CHANGE USDT HERE ---------------------------------------------------------------------------------------------
         statement3 = ''' 
                 UPDATE deposit_transactions
-                SET match_usdc_3_2_2 = '{0}'
+                SET match_eth_3_2_2 = '{0}'
                 WHERE txid = '{1}' AND inc_address ='{2}'
                 '''.format(count, row[2], row[3])
 
