@@ -19,198 +19,82 @@ import plotly.express as px
 import math
 from bioinfokit.analys import stat, get_data
 
-#Prints Table 4.x
-def table_printer():
-    engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
-    conn = engine.connect()
-
-    # USDT/ETH 2117028 USDC 1457894 and to select and replace for USDT/ETH/USDC
-    total = 1457894
-
-    print("Sum Matches")
-    statement = '''SELECT COUNT(*) FROM matches_usdc '''
-    nr_matches = conn.execute(statement)
-    for w in nr_matches:
-        print("3 2 : ", f"{w['count']:,}")
-    statement = '''SELECT COUNT(*) FROM matches_usdc WHERE time_diff < 120'''
-    nr_matches = conn.execute(statement)
-    for w in nr_matches:
-        print("2 2 : ", f"{w['count']:,}")
-    statement = '''SELECT COUNT(*) FROM matches_usdc WHERE time_diff < 60'''
-    nr_matches = conn.execute(statement)
-    for w in nr_matches:
-        print("1 2 : ", f"{w['count']:,}")
-
-    statement = '''SELECT COUNT(*) FROM matches_usdc WHERE tran_qty = dep_qty'''
-    nr_matches = conn.execute(statement)
-    for w in nr_matches:
-        print("3 0 : ", f"{w['count']:,}")
-    statement = '''SELECT COUNT(*) FROM matches_usdc WHERE time_diff < 120 AND  tran_qty = dep_qty'''
-    nr_matches = conn.execute(statement)
-    for w in nr_matches:
-        print("2 0 : ", f"{w['count']:,}")
-    statement = '''SELECT COUNT(*) FROM matches_usdc WHERE time_diff < 60 AND  tran_qty = dep_qty'''
-    nr_matches = conn.execute(statement)
-    for w in nr_matches:
-        print("1 0 : ", f"{w['count']:,}")
-
-    print("#Matches(>0)")
-    statement = '''SELECT COUNT(*) FROM deposit_transactions WHERE match_usdc_3_2 != 0'''
-    nr_matches = conn.execute(statement)
-    for w in nr_matches:
-        print("3 2 : ", f"{w['count']:,}")
-        m32 = w['count']
-    statement = '''SELECT COUNT(*) FROM deposit_transactions WHERE match_usdc_2_2 != 0'''
-    nr_matches = conn.execute(statement)
-    for w in nr_matches:
-        print("2 2 : ", f"{w['count']:,}")
-        m22 = w['count']
-    statement = '''SELECT COUNT(*) FROM deposit_transactions WHERE match_usdc_1_2 != 0'''
-    nr_matches = conn.execute(statement)
-    for w in nr_matches:
-        print("1 2 : ", f"{w['count']:,}")
-        m12 = w['count']
-
-    statement = '''SELECT COUNT(*) FROM deposit_transactions WHERE match_usdc_3_0 != 0'''
-    nr_matches = conn.execute(statement)
-    for w in nr_matches:
-        print("3 0 : ", f"{w['count']:,}")
-        m30 = w['count']
-    statement = '''SELECT COUNT(*) FROM deposit_transactions  WHERE match_usdc_2_0 != 0'''
-    nr_matches = conn.execute(statement)
-    for w in nr_matches:
-        print("2 0 : ", f"{w['count']:,}")
-        m20 = w['count']
-    statement = '''SELECT COUNT(*) FROM deposit_transactions WHERE match_usdc_1_0 != 0'''
-    nr_matches = conn.execute(statement)
-    for w in nr_matches:
-        print("1 0 : ", f"{w['count']:,}")
-        m10 = w['count']
-
-    print("%")
-    print("3 2 : ", round((m32 / total) * 100, 2))
-    print("2 2 : ", round((m22 / total) * 100, 2))
-    print("1 2 : ", round((m12 / total) * 100, 2))
-    print("3 0 : ", round((m30 / total) * 100, 2))
-    print("2 0 : ", round((m20 / total) * 100, 2))
-    print("1 0 : ", round((m10 / total) * 100, 2))
-
-    print("Avg. Matches")
-    statement = '''SELECT AVG(match_usdc_3_2) FROM deposit_transactions WHERE match_usdc_3_2 !=0'''
-    nr_matches = conn.execute(statement)
-    for w in nr_matches:
-        print("3 2 : ", round(float(w['avg']),2))
-    statement = '''SELECT AVG(match_usdc_2_2) FROM deposit_transactions WHERE match_usdc_2_2 !=0 '''
-    nr_matches = conn.execute(statement)
-    for w in nr_matches:
-        print("2 2 : ",round(float(w['avg']),2))
-    statement = '''SELECT AVG(match_usdc_1_2) FROM deposit_transactions WHERE match_usdc_1_2 !=0 '''
-    nr_matches = conn.execute(statement)
-    for w in nr_matches:
-        print("1 2 : ", round(float(w['avg']),2))
-
-    statement = '''SELECT AVG(match_usdc_3_0) FROM deposit_transactions WHERE match_usdc_3_0 !=0 '''
-    nr_matches = conn.execute(statement)
-    for w in nr_matches:
-        print("3 0 : ", round(float(w['avg']),2))
-    statement = '''SELECT AVG(match_usdc_2_0) FROM deposit_transactions WHERE match_usdc_2_0 != 0 '''
-    nr_matches = conn.execute(statement)
-    for w in nr_matches:
-        print("2 0 : ", round(float(w['avg']),2))
-    statement = '''SELECT AVG(match_usdc_1_0) FROM deposit_transactions WHERE match_usdc_1_0 !=0 '''
-    nr_matches = conn.execute(statement)
-    for w in nr_matches:
-        print("1 0 : ", round(float(w['avg']),2))
-
-    print("Matches = 1")
-    statement = '''SELECT COUNT(*) FROM deposit_transactions WHERE match_usdc_3_2 = 1'''
-    nr_matches = conn.execute(statement)
-    for w in nr_matches:
-        print("3 2 : ", f"{w['count']:,}")
-        mm32 = w['count']
-    statement = '''SELECT COUNT(*) FROM deposit_transactions WHERE match_usdc_2_2 = 1'''
-    nr_matches = conn.execute(statement)
-    for w in nr_matches:
-        print("2 2 : ", f"{w['count']:,}")
-        mm22 = w['count']
-    statement = '''SELECT COUNT(*) FROM deposit_transactions WHERE match_usdc_1_2 = 1'''
-    nr_matches = conn.execute(statement)
-    for w in nr_matches:
-        print("1 2 : ", f"{w['count']:,}")
-        mm12 = w['count']
-
-    statement = '''SELECT COUNT(*) FROM deposit_transactions WHERE match_usdc_3_0 = 1'''
-    nr_matches = conn.execute(statement)
-    for w in nr_matches:
-        print("3 0 : ", f"{w['count']:,}")
-        mm30 = w['count']
-    statement = '''SELECT COUNT(*) FROM deposit_transactions  WHERE match_usdc_2_0 = 1'''
-    nr_matches = conn.execute(statement)
-    for w in nr_matches:
-        print("2 0 : ", f"{w['count']:,}")
-        mm20 = w['count']
-    statement = '''SELECT COUNT(*) FROM deposit_transactions WHERE match_usdc_1_0 = 1'''
-    nr_matches = conn.execute(statement)
-    for w in nr_matches:
-        print("1 0 : ", f"{w['count']:,}")
-        mm10 = w['count']
-
-    print("% x1")
-    print("3 2 : ", round((mm32 / m32) * 100, 2))
-    print("2 2 : ", round((mm22 / m22) * 100, 2))
-    print("1 2 : ", round((mm12 / m12) * 100, 2))
-    print("3 0 : ", round((mm30 / m30) * 100, 2))
-    print("2 0 : ", round((mm20 / m20) * 100, 2))
-    print("1 0 : ", round((mm10 / m10) * 100, 2))
-
-    print("% x2")
-    print("3 2 : ", round((mm32 / total) * 100, 2))
-    print("2 2 : ", round((mm22 / total) * 100, 2))
-    print("1 2 : ", round((mm12 / total) * 100, 2))
-    print("3 0 : ", round((mm30 / total) * 100, 2))
-    print("2 0 : ", round((mm20 / total) * 100, 2))
-    print("1 0 : ", round((mm10 / total) * 100, 2))
-
-def table_avg_time():
+########## FINISHED ######################
+#Prints Table 5.1
+def table_5_1():
     list1 = ['usdt', 'eth', 'usdc']
-    list2 = ['3_2', '2_2', '1_2', '3_0', '2_0', '1_0']
-    list3 = [180,120,60,180,120,60]
-    list4 = [[1,0,0],[0,1,0],[0,0,1]]
+    list5 = ['sell', 'buy', 'sell']
+
     engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
     conn = engine.connect()
 
-    for id,i in enumerate(list1):
-        print(i, ": ")
-        for idx, j in enumerate(list2):
-
-            # For some reason with beta = 0, the select gives double entries, fixed by grouping unique and selecting
-            # everything then. i dont know why and i dont care its fixed
-            statement = '''
-            SELECT AVG(te), COUNT(*)FROM(
-            SELECT AVG(time_diff) as te, COUNT(*)
-            FROM matches_{0}
-            INNER JOIN deposit_transactions
-            on matches_{0}.inc_address = deposit_transactions.inc_address
-            AND matches_{0}.txid = deposit_transactions.txid
-            AND deposit_transactions.match_usdt_{1} = {3}
-            AND deposit_transactions.match_eth_{1} = {4}
-            AND deposit_transactions.match_usdc_{1} = {5}
-            AND
-            time_diff <= {2}
-            GROUP BY matches_{0}.inc_address,matches_{0}.txid) as cw
-            ;
-            '''.format(i,j,list3[idx], list4[id][0], list4[id][1],list4[id][2])
+    for id, i in enumerate(list1):
+        print(list1[id],": ")
+        for j in range(9):
+            statement = '''SELECT COUNT(*) FROM "hitbtc_trans_{0}" WHERE timestamp BETWEEN '{1}-01-01 ' AND 
+            '{2}-01-01' AND side='{3}' '''.format(i, 2014+j,2015+j,list5[id])
 
 
             df = pds.read_sql(statement, conn)
-            print("           ", j, f"{df['count'][0]:,}", round((df['avg'][0]), 2))
+            print("     ",2014+j, "{df['count'][0]:,}")
 
-def table_avg_time2():
+    print("Deposit Transactions")
+    for j in range(9):
+        statement = '''SELECT COUNT(*) FROM deposit_transactions WHERE time BETWEEN '{0}-01-01' AND '{1}-01-01' 
+        '''.format(2014 + j, 2015 + j)
+
+        df = pds.read_sql(statement, conn)
+        print("     ",2014 + j, f"{df['count'][0]:,}")
+
+#Prints Table 5.2
+def table_5_2():
+    engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
+    conn = engine.connect()
+
+    list1 = ['usdt', 'eth', 'usdc']
+    list2 = ['3_2', '2_2', '1_2', '3_0', '2_0', '1_0']
+    list3 = [180,120,60,180,120,60]
+    # USDT/ETH 2117028 USDC 1457894 and to select and replace for USDT/ETH/USDC
+    total = [2117028,2117028,1457894]
+
+    list6 = ['& 3 & 2 ', '& 2 & 2 ', ' & 1 & 2', '& 3 & 0', '& 2 & 0', '& 1 & 0']
+    list7 = ['','','','AND tran_qty = dep_qty','AND tran_qty = dep_qty','AND tran_qty = dep_qty']
+
+    print("Sum Matches")
+    for id,i in enumerate(list1):
+        print(i, ": ")
+        for idx, j in enumerate(list2):
+            statement = '''
+                            SELECT COUNT(*), AVG(match_{0}_{1}) 
+                            FROM deposit_transactions WHERE match_{0}_{1} != 0 
+                           '''.format(list1[id],list2[idx])
+
+            statement2 = '''SELECT COUNT(*) FROM deposit_transactions WHERE match_{0}_{1} = 1'''.format(list1[id],
+                                                                                                        list2[idx])
+            df3 = pds.read_sql(statement, conn)
+            df4 = pds.read_sql(statement2, conn)
+
+            statement3 = '''SELECT COUNT(*) FROM matches_{0} WHERE time_diff <= {1} {2} '''.format(list1[id],
+                                                                                                   list3[idx],
+                                                                                                   list7[idx])
+
+            df = pds.read_sql(statement3, conn)
+
+            print("     ", list6[idx], " & ", f"{df['count'][0]:,}", " & ", f"{df3['count'][0]:,}", " & ",
+                  round((df3['count'][0] / total[id]) * 100, 2), " & ",
+                  round(df3['avg'][0], 2), " & ", f"{df4['count'][0]:,}", " & ", round((df4['count'][0] / df3[
+                    'count'][0]) * 100, 2), " & ",
+                  round((df4['count'][0] / total[id]) * 100, 2))
+
+#Prints Table 5.3
+def table_5_3():
     list1 = ['usdt', 'eth', 'usdc']
     list2 = ['3_2', '2_2', '1_2', '3_0', '2_0', '1_0']
     list3 = [180,120,60,180,120,60]
     list4 = [[1,0,0],[0,1,0],[0,0,1]]
     list5 = [95,65,35,95,65,35]
+    list6 = ['3 & 2', '2 & 2', '1 & 2', '3 & 0', '2 & 0', '1 & 0']
+    list7 = ['qty', 'trade_size_btc', 'qty']
     engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
     conn = engine.connect()
 
@@ -224,9 +108,9 @@ def table_avg_time2():
             # For some reason with beta = 0, the select gives double entries, fixed by grouping unique and selecting
             # everything then. i dont know why and i dont care its fixed
             statement = '''
-            SELECT stddev(te) as dev, AVG(te) as avg_time_diff, COUNT(*) as unique_hits , AVG(tw) as avg_usd_total,
+            SELECT AVG(te) as avg_time_diff, COUNT(*) as unique_hits , AVG(tw) as avg_usd_total,
             AVG(tx) as avg_qty FROM(
-            SELECT AVG(time_diff) as te, COUNT(*), AVG(usd_total) as tw, AVG(hitbtc_trans_{0}.qty) as tx
+            SELECT AVG(time_diff) as te, COUNT(*), AVG(usd_total) as tw, AVG(hitbtc_trans_{0}.{6}) as tx
             FROM matches_{0}
             INNER JOIN deposit_transactions
             on matches_{0}.inc_address = deposit_transactions.inc_address
@@ -239,12 +123,12 @@ def table_avg_time2():
             on matches_{0}.tran_id = hitbtc_trans_{0}.id
             GROUP BY matches_{0}.inc_address,matches_{0}.txid) as cw
             ;
-            '''.format(i,j,list3[idx], list4[id][0], list4[id][1],list4[id][2])
+            '''.format(i,j,list3[idx], list4[id][0], list4[id][1],list4[id][2], list7[id])
 
             #print(statement)
             df = pds.read_sql(statement, conn)
-            print("           ", j, f"{df['unique_hits'][0]:,}", round((df['avg_time_diff'][0]), 2),
-                  round(df['avg_usd_total'][0],2),f"{df['avg_qty'][0]:.4f}",round(df['dev'][0],2))
+            print("           ", list6[idx],"&", f"{df['unique_hits'][0]:,}","&", round((df['avg_time_diff'][0]), 2),"&",
+                  round(df['avg_usd_total'][0],2),"&",f"{df['avg_qty'][0]:.4f}","&", f"{round(df['avg_usd_total'][0]/df['avg_qty'][0],2):,}" )
 
 
             statement2= '''
@@ -259,20 +143,19 @@ def table_avg_time2():
             AND time_diff <= {2}
             GROUP BY matches_{0}.inc_address,matches_{0}.txid
             '''.format(i,j,list3[idx], list4[id][0], list4[id][1],list4[id][2])
-            df2 = pds.read_sql(statement2, conn)
+
+            #df2 = pds.read_sql(statement2, conn)
             #print(df2['time_diff'].mean())
-            result= stats.ttest_1samp(a=df2, popmean=list5[idx])
-            p_value= result[1][0]
-            if( p_value<=0.05):
-                print("Difference: YES", p_value)
-            else:
-                print("Difference: NO",p_value)
+            #result= stats.ttest_1samp(a=df2, popmean=list5[idx])
+            #p_value= result[1][0]
+            #if( p_value<=0.05):
+            #    print("Difference: YES", p_value)
+            #else:
+            #    print("Difference: NO",p_value)
 
 
-    print(sum(expected)-sum(for_test))
 
-
-#Prints Figure x
+#Prints Figure 5.2
 def df_tran_sum_graph_all():
     engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
     conn = engine.connect()
@@ -401,40 +284,9 @@ def df_tran_sum_graph_all():
                  size=12)
     plt.show()
 
-#Prints Figure x
-def plotNrOfMatches():
-    labels = ['0', '1', '2', '3', '4', '5']
-    x = np.arange(len(labels))
 
-    fig, (ax1, ax2) = plt.subplots(1, 2,sharey=True)
-
-    nr_match_1_0 = [1927030, 60371, 24318, 14049, 9869, 7285]
-    nr_match_2_0 = [1867552, 69265, 31376, 18640, 12453, 9300]
-    nr_match_3_0 = [1831956, 71774, 35166, 21304, 14519, 11025]
-    nr_match_1_2 = [1114174, 358233, 198593, 112279, 69403, 45792]
-    nr_match_2_2 = [826978, 284921, 213332, 153337, 110900, 81872]
-    nr_match_3_2 = [706800, 212976, 187772, 151682, 121658, 96476]
-
-    ax1.bar(x - 0.3, nr_match_1_0, width=0.3, label=r'$\alpha_1,  \beta_0$', align='center', color='#FC766AFF')
-    ax1.bar(x, nr_match_2_0, width=0.3, label='2 hours, 0%', align='center', color='#B0B8B4FF')
-    ax1.bar(x + 0.3, nr_match_3_0, width=0.3, label='3 hours, 0%', align='center', color='#184A45FF')
-
-    ax1.set_ylabel('Count of matches')
-    ax1.set_yscale('log')
-    ax1.set_xlabel('Numer of matches found')
-    ax1.legend()
-
-    ax2.bar(x - 0.3, nr_match_1_2, width=0.3, label=' 1 hour , 2%', align='center', color='#FC766AFF')
-    ax2.bar(x, nr_match_2_2, width=0.3, label='2 hours, 2%', align='center', color='#B0B8B4FF')
-    ax2.bar(x + 0.3, nr_match_3_2, width=0.3, label='3 hours, 2%', align='center', color='#184A45FF')
-    ax2.legend()
-
-    plt.xlabel('Number of matches found')
-
-    ax2.set_yscale('log')
-    plt.show()
-
-#Looking at the quanties where matches are found and looking into it
+########## IN WORK ######################
+#Table 5.4
 def qty_match_ana():
     engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
     conn = engine.connect()
@@ -472,237 +324,7 @@ def qty_match_ana():
             print(f"{len(less_df2.index):,}",round(len(less_df2.index)/len(less_df.index)*100,2), " ")
             print()
 
-#FIG that
-def tran_usd_size():
-    engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
-    conn = engine.connect()
-    list1= ['usdt', 'eth', 'usdc']
-
-    #######################################
-    statement_usdt = '''SELECT usd_total FROM "hitbtc_trans_usdt" WHERE side='sell' '''.format(list1[2])
-    df_usdt = pds.read_sql(statement_usdt, conn)
-
-    df_usdt['usdt_buckets'] = pds.cut(df_usdt.usd_total, bins=[0,1000,5000,20000,50000,200000,1000000000000],
-                                     right=False)
-    df2_usdt= df_usdt['usdt_buckets'].value_counts()
-    df2_usdt = (df2_usdt / df2_usdt.sum()) * 100
-    #######################################
-    statement_eth = '''SELECT usd_total FROM "hitbtc_trans_eth" WHERE side='buy' '''.format(list1[2])
-    df_eth = pds.read_sql(statement_eth, conn)
-
-    df_eth['usdt_buckets'] = pds.cut(df_eth.usd_total, bins=[0,1000,5000,20000,50000,200000,1000000000000],
-                                     right=False)
-    df2_eth= df_eth['usdt_buckets'].value_counts()
-    df2_eth = (df2_eth/ df2_eth.sum()) * 100
-    #######################################
-    statement_usdc = '''SELECT usd_total FROM "hitbtc_trans_usdc" WHERE side='sell' '''.format(list1[2])
-    df_usdc = pds.read_sql(statement_usdc, conn)
-
-    df_usdc['usdt_buckets'] = pds.cut(df_usdc.usd_total, bins=[0,1000,5000,20000,50000,200000,1000000000000],
-                                     right=False)
-    df2_usdc= df_usdc['usdt_buckets'].value_counts()
-    df2_usdc = (df2_usdc / df2_usdc.sum()) * 100
-
-    #fig, (ax1, ax2) = plt.subplots(1,2, figsize=(10, 5))
-
-    xlabel= ['0 to $1k','$1k to $5k','5$ to $1k','$20k to $50k','$50 to $200k', 'Over $200k']
-    x= np.arange(len(xlabel))
-
-    ax = plt.subplot(111)
-
-    ax.bar(x - 0.2,df2_usdt.values,width=0.2)
-    ax.bar(x , df2_eth.values,width=0.2)
-    ax.bar(x+0.2, df2_usdc.values,width=0.2)
-    ax.set_xticks(x,xlabel)
-    ax.autoscale(tight=True)
-    #plt.subplots_adjust(bottom=0.2)
-    #plt.yscale('log')
-    #ax.set_xticks(rotation='vertical')
-    plt.show()
-    print("Done")
-
-#Want bubble
-def bubble_x_x():
-    engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
-    conn = engine.connect()
-
-    statement_usdt = '''SELECT qty, usd_total, price FROM "hitbtc_trans_usdt" WHERE side='sell' '''
-
-    df = pds.read_sql(statement_usdt, conn)
-
-    #np.random.seed(42)
-    #N = 100
-    #x = np.random.normal(170, 20, N)
-    #y = x + np.random.normal(5, 25, N)
-    #colors = np.random.rand(N)
-    #area = (25 * np.random.rand(N)) ** 2
-
-    #df = pds.DataFrame({
-    #    'X': x,
-    #    'Y': y,
-    #    'Colors': colors,
-     #   "bubble_size": area})
-
-    #df.head(n=3)
-
-    print(df)
-
-    # scatter plot with scatter() function
-    plt.scatter('usd_total', 'price', s='qty',data=df)
-
-
-    plt.xlabel("X", size=16)
-    plt.ylabel("y", size=16)
-    plt.xscale('log')
-    plt.title("Scatter Plot with Matplotlib", size=18)
-
-    # scatter plot with scatter() function
-    # transparency with "alpha"
-    # bubble size with "s"
-    #plt.scatter('X', 'Y',
-    #            s='bubble_size',
-    #            alpha=0.5,
-    #            data=df)
-    #plt.xlabel("X", size=16)
-    #plt.ylabel("y", size=16)
-    #plt.title("Bubble Plot with Matplotlib", size=18)
-
-    # scatter plot with scatter() function
-    # transparency with "alpha"
-    # bubble size with "s"
-    # color the bubbles with "c"
-    #plt.scatter('X', 'Y',
-    #            s='bubble_size',
-    #            c='Colors',
-    #            alpha=0.5, data=df)
-    #plt.xlabel("X", size=16)
-    #plt.ylabel("y", size=16)
-    #plt.title("Bubble Plot with Colors: Matplotlib", size=18)
-
-    plt.show()
-
-
-# Showing how often a value appears in depositing transaction, showing how often a qty is transacted on hitbtc
-def redundand():
-    engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
-    conn = engine.connect()
-
-    statement = '''SELECT qty,SUM(match_usdt_3_0) as sum_e FROM "deposit_transactions" GROUP BY qty HAVING 
-    SUM(match_usdt_3_2) >178640 '''
-    dataFrame = pds.read_sql(statement, conn)
-
-    statement2 = '''SELECT qty, COUNT(*) FROM "hitbtc_trans_usdt" WHERE side= 'sell' GROUP BY qty HAVING COUNT(
-                    *)>412455'''
-    dataFrame2 = pds.read_sql(statement2, conn)
-
-    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(10, 5))
-    dataFrame2.plot(kind='bar', x='qty', y='count', ax=ax1, subplots=True)
-    dataFrame.plot(kind='bar', x='qty', y='sum_e', ax=ax2, subplots=True)
-
-    plt.subplots_adjust(bottom=0.2)
-    plt.yscale('log')
-    plt.show()
-    print(dataFrame)
-
-# Showing qty, then how many matches found, then how often qty is transacted with
-def df_of_tran_sum():
-    engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
-    conn = engine.connect()
-
-
-    statement = '''SELECT qty,SUM(match_usdc_1_2) as sum_e FROM "deposit_transactions" GROUP BY qty HAVING 
-                   SUM(match_usdc_1_2) >0 '''
-    dataFrame = pds.read_sql(statement, conn)
-    statement2 = '''SELECT qty, COUNT(*) FROM "hitbtc_trans_usdc" WHERE side= 'sell' GROUP BY qty HAVING COUNT(
-                    *)>0'''
-    dataFrame2 = pds.read_sql(statement2, conn)
-
-    merged_df = dataFrame2.merge(dataFrame, how='left', on=['qty'])
-
-    #less_df = merged_df[merged_df['sum_e'].notna()]
-    #less_df = less_df.reset_index()
-    less_df = merged_df
-
-    #less_df.drop('index', axis=1, inplace=True)
-    less_df.sort_values(by=['qty'], inplace= True)
-
-    #fig, (ax1, ax2) = plt.subplots(1, 1,sharey=True)
-
-
-    plt.plot(less_df['qty'], less_df['count'])
-    #ax1.axhline(y=0, color='r', linewidth=0.7)
-    plt.title('USDC')
-    plt.ylabel('Count')
-    plt.xlabel('qty')
-
-    print("There are ", len(merged_df.index), " different transaction quantities, ", len(less_df.index))
-
-    plt.yscale('log')
-    plt.show()
-
-
-# For the qty x, there are y transactions in hitbtc_trans_x and in real_deposit_transaction total matches found GRAPH
-def df_tran_sum_graph_single():
-    engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
-    conn = engine.connect()
-
-    statement = '''SELECT qty,SUM(match_usdt_1_2) as sum_e FROM "deposit_transactions" GROUP BY qty HAVING 
-                   SUM(match_usdt_1_2) >0 '''
-    dataFrame = pds.read_sql(statement, conn)
-    statement2 = '''SELECT qty, COUNT(*) as count_e FROM "hitbtc_trans_usdt" WHERE side= 'sell' GROUP BY qty HAVING 
-    COUNT(*)>0'''
-    dataFrame2 = pds.read_sql(statement2, conn)
-
-    merged_df = dataFrame2.merge(dataFrame, how='left', on=['qty'])
-
-    less_df = merged_df[merged_df['sum_e'].notna()]
-    less_df = less_df.reset_index()
-
-    less_df['count_e'] = (less_df['count_e'] / less_df['count_e'].sum()) * 100
-    less_df['sum_e'] = (less_df['sum_e'] / less_df['sum_e'].sum()) * 100
-    less_df.drop('index', axis=1, inplace=True)
-    print(less_df)
-    print(less_df.sort_values(by=['count_e']))
-    print(less_df.sort_values(by=['sum_e']))
-
-    less_df['diff_count_sum'] = less_df.sum_e - less_df.count_e
-
-    print(less_df)
-    print(less_df.sort_values(by=['count_e']))
-    print(less_df.sort_values(by=['sum_e']))
-    print(less_df.sort_values(by=['diff_count_sum']))
-
-    # CHANGE Only QTY difference below
-    less_df.drop(less_df[less_df.qty > 1].index, inplace=True)
-
-    #CHANGE threshhold Show Only Divergence after x
-    less_df.drop(less_df[abs(less_df.diff_count_sum) < 2.5].index, inplace=True)
-    less_df = less_df.reset_index()
-
-    #print(less_df)
-
-def benfords_law():
-    engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
-    conn = engine.connect()
-    #statement = '''SELECT qty FROM "hitbtc_trans_usdt" WHERE side='sell' '''
-    #statement = '''SELECT qty FROM "deposit_transactions" '''
-    statement = '''SELECT dep_qty as qty FROM "matches_usdc" '''
-    df = pds.read_sql(statement, conn)
-    df['qty'] = (df['qty']) * 1000000
-    df['leading_digit'] = df['qty'].astype(str).str[0].astype(int)
-    df_f= df['leading_digit'].value_counts(normalize=True)*100
-    df_f.sort_index(inplace=True)
-    print(df_f)
-
-    ax= df_f.plot.bar(color='#4d6910')
-    df_b = pd.DataFrame({'Benford´s Law':[30.1,17.6,12.5,9.7,7.9,6.7,5.8,5.1,4.6]})
-    df_b.plot(ax=ax, marker='o', color='#ffa600', label='')
-    plt.ylabel("Probability")
-    plt.xlabel("Leading Digit")
-    plt.show()
-
-    print(chisquare(df_f.values, f_exp=[30.1,17.6,12.5,9.7,7.9,6.7,5.8,5.1,4.6]) )
-
+#Dont know yet
 def benfords_law2():
     engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
     conn = engine.connect()
@@ -773,14 +395,230 @@ def benfords_law2():
 
     #print(chisquare(df_f.values, f_exp=[30.1,17.6,12.5,9.7,7.9,6.7,5.8,5.1,4.6]) )
 
+#Dont know yet
+def plotNrOfMatches():
+    labels = ['0', '1', '2', '3', '4', '5']
+    x = np.arange(len(labels))
+
+    fig, (ax1, ax2) = plt.subplots(1, 2,sharey=True)
+
+    nr_match_1_0 = [1927030, 60371, 24318, 14049, 9869, 7285]
+    nr_match_2_0 = [1867552, 69265, 31376, 18640, 12453, 9300]
+    nr_match_3_0 = [1831956, 71774, 35166, 21304, 14519, 11025]
+    nr_match_1_2 = [1114174, 358233, 198593, 112279, 69403, 45792]
+    nr_match_2_2 = [826978, 284921, 213332, 153337, 110900, 81872]
+    nr_match_3_2 = [706800, 212976, 187772, 151682, 121658, 96476]
+
+    ax1.bar(x - 0.3, nr_match_1_0, width=0.3, label=r'$\alpha_1,  \beta_0$', align='center', color='#FC766AFF')
+    ax1.bar(x, nr_match_2_0, width=0.3, label='2 hours, 0%', align='center', color='#B0B8B4FF')
+    ax1.bar(x + 0.3, nr_match_3_0, width=0.3, label='3 hours, 0%', align='center', color='#184A45FF')
+
+    ax1.set_ylabel('Count of matches')
+    ax1.set_yscale('log')
+    ax1.set_xlabel('Numer of matches found')
+    ax1.legend()
+
+    ax2.bar(x - 0.3, nr_match_1_2, width=0.3, label=' 1 hour , 2%', align='center', color='#FC766AFF')
+    ax2.bar(x, nr_match_2_2, width=0.3, label='2 hours, 2%', align='center', color='#B0B8B4FF')
+    ax2.bar(x + 0.3, nr_match_3_2, width=0.3, label='3 hours, 2%', align='center', color='#184A45FF')
+    ax2.legend()
+
+    plt.xlabel('Number of matches found')
+
+    ax2.set_yscale('log')
+    plt.show()
+
+#Shows distribution of qty in buckets
+def tran_usd_size():
+    engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
+    conn = engine.connect()
+    list1= ['usdt', 'eth', 'usdc']
+
+    #######################################
+    statement_usdt = '''SELECT usd_total FROM "hitbtc_trans_usdt" WHERE side='sell' '''.format(list1[2])
+    df_usdt = pds.read_sql(statement_usdt, conn)
+
+    df_usdt['usdt_buckets'] = pds.cut(df_usdt.usd_total, bins=[0,1000,5000,20000,50000,200000,1000000000000],
+                                     right=False)
+    df2_usdt= df_usdt['usdt_buckets'].value_counts()
+    df2_usdt = (df2_usdt / df2_usdt.sum()) * 100
+    #######################################
+    statement_eth = '''SELECT usd_total FROM "hitbtc_trans_eth" WHERE side='buy' '''.format(list1[2])
+    df_eth = pds.read_sql(statement_eth, conn)
+
+    df_eth['usdt_buckets'] = pds.cut(df_eth.usd_total, bins=[0,1000,5000,20000,50000,200000,1000000000000],
+                                     right=False)
+    df2_eth= df_eth['usdt_buckets'].value_counts()
+    df2_eth = (df2_eth/ df2_eth.sum()) * 100
+    #######################################
+    statement_usdc = '''SELECT usd_total FROM "hitbtc_trans_usdc" WHERE side='sell' '''.format(list1[2])
+    df_usdc = pds.read_sql(statement_usdc, conn)
+
+    df_usdc['usdt_buckets'] = pds.cut(df_usdc.usd_total, bins=[0,1000,5000,20000,50000,200000,1000000000000],
+                                     right=False)
+    df2_usdc= df_usdc['usdt_buckets'].value_counts()
+    df2_usdc = (df2_usdc / df2_usdc.sum()) * 100
+
+    #fig, (ax1, ax2) = plt.subplots(1,2, figsize=(10, 5))
+
+    xlabel= ['0 to $1k','$1k to $5k','5$ to $1k','$20k to $50k','$50 to $200k', 'Over $200k']
+    x= np.arange(len(xlabel))
+
+    ax = plt.subplot(111)
+
+    ax.bar(x - 0.2,df2_usdt.values,width=0.2, c='#ff1700')
+    ax.bar(x , df2_eth.values,width=0.2, c='#ffa600' )
+    ax.bar(x+0.2, df2_usdc.values,width=0.2, c='#4d6910')
+    ax.set_xticks(x,xlabel)
+    ax.autoscale(tight=True)
+    #plt.subplots_adjust(bottom=0.2)
+    #plt.yscale('log')
+    #ax.set_xticks(rotation='vertical')
+    plt.show()
+    print("Done")
+
+######## SIMPLER VERSION FOR ONLY ONE OR NO GRAPH JUST DATA ##############
+def benfords_law():
+    engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
+    conn = engine.connect()
+    #statement = '''SELECT qty FROM "hitbtc_trans_usdt" WHERE side='sell' '''
+    #statement = '''SELECT qty FROM "deposit_transactions" '''
+    statement = '''SELECT dep_qty as qty FROM "matches_usdc" '''
+    df = pds.read_sql(statement, conn)
+    df['qty'] = (df['qty']) * 1000000
+    df['leading_digit'] = df['qty'].astype(str).str[0].astype(int)
+    df_f= df['leading_digit'].value_counts(normalize=True)*100
+    df_f.sort_index(inplace=True)
+    print(df_f)
+
+    ax= df_f.plot.bar(color='#4d6910')
+    df_b = pd.DataFrame({'Benford´s Law':[30.1,17.6,12.5,9.7,7.9,6.7,5.8,5.1,4.6]})
+    df_b.plot(ax=ax, marker='o', color='#ffa600', label='')
+    plt.ylabel("Probability")
+    plt.xlabel("Leading Digit")
+    plt.show()
+
+    print(chisquare(df_f.values, f_exp=[30.1,17.6,12.5,9.7,7.9,6.7,5.8,5.1,4.6]) )
+
+# For the qty x, there are y transactions in hitbtc_trans_x and in real_deposit_transaction total matches found GRAPH
+def df_tran_sum_graph_single():
+    engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
+    conn = engine.connect()
+
+    statement = '''SELECT qty,SUM(match_usdt_1_2) as sum_e FROM "deposit_transactions" GROUP BY qty HAVING 
+                   SUM(match_usdt_1_2) >0 '''
+    dataFrame = pds.read_sql(statement, conn)
+    statement2 = '''SELECT qty, COUNT(*) as count_e FROM "hitbtc_trans_usdt" WHERE side= 'sell' GROUP BY qty HAVING 
+    COUNT(*)>0'''
+    dataFrame2 = pds.read_sql(statement2, conn)
+
+    merged_df = dataFrame2.merge(dataFrame, how='left', on=['qty'])
+
+    less_df = merged_df[merged_df['sum_e'].notna()]
+    less_df = less_df.reset_index()
+
+    less_df['count_e'] = (less_df['count_e'] / less_df['count_e'].sum()) * 100
+    less_df['sum_e'] = (less_df['sum_e'] / less_df['sum_e'].sum()) * 100
+    less_df.drop('index', axis=1, inplace=True)
+    print(less_df)
+    print(less_df.sort_values(by=['count_e']))
+    print(less_df.sort_values(by=['sum_e']))
+
+    less_df['diff_count_sum'] = less_df.sum_e - less_df.count_e
+
+    print(less_df)
+    print(less_df.sort_values(by=['count_e']))
+    print(less_df.sort_values(by=['sum_e']))
+    print(less_df.sort_values(by=['diff_count_sum']))
+
+    # CHANGE Only QTY difference below
+    less_df.drop(less_df[less_df.qty > 1].index, inplace=True)
+
+    #CHANGE threshhold Show Only Divergence after x
+    less_df.drop(less_df[abs(less_df.diff_count_sum) < 2.5].index, inplace=True)
+    less_df = less_df.reset_index()
+
+    print(less_df)
+
+
+############# DONT KNOW WHY ITS STILL HERE ###################
+
+#Bubble caus bubble no use case yet
+def bubble_x_x():
+    engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
+    conn = engine.connect()
+
+    statement_usdt = '''SELECT qty, usd_total, price FROM "hitbtc_trans_usdt" WHERE side='sell' '''
+
+    df = pds.read_sql(statement_usdt, conn)
+
+    #np.random.seed(42)
+    #N = 100
+    #x = np.random.normal(170, 20, N)
+    #y = x + np.random.normal(5, 25, N)
+    #colors = np.random.rand(N)
+    #area = (25 * np.random.rand(N)) ** 2
+
+    #df = pds.DataFrame({
+    #    'X': x,
+    #    'Y': y,
+    #    'Colors': colors,
+     #   "bubble_size": area})
+
+    #df.head(n=3)
+
+    print(df)
+
+    # scatter plot with scatter() function
+    plt.scatter('usd_total', 'price', s='qty',data=df)
+
+
+    plt.xlabel("X", size=16)
+    plt.ylabel("y", size=16)
+    plt.xscale('log')
+    plt.title("Scatter Plot with Matplotlib", size=18)
+
+    # scatter plot with scatter() function
+    # transparency with "alpha"
+    # bubble size with "s"
+    #plt.scatter('X', 'Y',
+    #            s='bubble_size',
+    #            alpha=0.5,
+    #            data=df)
+    #plt.xlabel("X", size=16)
+    #plt.ylabel("y", size=16)
+    #plt.title("Bubble Plot with Matplotlib", size=18)
+
+    # scatter plot with scatter() function
+    # transparency with "alpha"
+    # bubble size with "s"
+    # color the bubbles with "c"
+    #plt.scatter('X', 'Y',
+    #            s='bubble_size',
+    #            c='Colors',
+    #            alpha=0.5, data=df)
+    #plt.xlabel("X", size=16)
+    #plt.ylabel("y", size=16)
+    #plt.title("Bubble Plot with Colors: Matplotlib", size=18)
+
+    plt.show()
+
+
+
+
+
+
+
+#qty_match_ana()
+table_5_3()
 #table_avg_time2()
 #bubble_x_x()
 #tran_usd_size()
 #df_of_tran_sum()
 #df_tran_sum_graph_single()
-benfords_law2()
+#benfords_law2()
 #df_tran_sum_graph_all()
 #plotNrOfMatches()
-#plotmatchesbyqty5(
-#table_printer()
+
+
 #plotmatchesbyqty5()

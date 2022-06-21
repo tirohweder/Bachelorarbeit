@@ -25,7 +25,7 @@ def main():
         #getRealOutDegree(cur,con,cur2)
         #getRealInDegree(cur,con,cur2)
         #doOnlyOnce(cur,con)
-        real_connectionWithHost(cur,con,cur2)
+        getUSDValueForETHtran(cur,con,cur2)
 
     except (Exception) as error:
         print("Error while connecting to PostgreSQL", error)
@@ -71,7 +71,7 @@ class Neo4jConnection:
         return response
 
 
-def moreInfo(cur, con, cur2):
+def inDegree_outDegree(cur, con, cur2):
     conn = Neo4jConnection(uri='bolt://localhost:7687', user='trohwede', pwd='1687885@uma')
 
     selection = 'SELECT address FROM unique_address ' \
@@ -98,15 +98,6 @@ def moreInfo(cur, con, cur2):
         # print(statement)
         cur2.execute(statement)
         con.commit()
-
-
-def connectionWithHostDoeOnlyOnce(cur, con):
-    statement = "UPDATE unique_address " \
-                "SET connections_with_host = 1" \
-                " WHERE in_degree = 1"
-
-    cur.execute(statement)
-    con.commit()
 
 
 def connectionWithHost(cur, con, cur2):
@@ -147,7 +138,7 @@ def connectionWithHost(cur, con, cur2):
         con.commit()
 
 
-def real_connectionWithHost(cur, con, cur2):
+def getRealConnectionWithHost(cur, con, cur2):
     conn = Neo4jConnection(uri='bolt://localhost:7687',user= 'trohwede', pwd='1687885@uma')
     list_of_all_addr = []
 
@@ -267,20 +258,25 @@ def getRealInDegree(cur,con,cur2):
         con.commit()
 
 
-def doOnlyOnce(cur,con):
-    statement = "UPDATE unique_address " \
-                "SET real_in_deg = 1" \
-                " WHERE in_degree = 1"
+def getUSDValueForETHtran(cur, con, cur2):
+    selection = 'SELECT id, qty, price, timestamp FROM hitbtc_trans_eth ' \
+                'WHERE usd_total IS NULL'
 
-    cur.execute(statement)
-    con.commit()
+    #print(selection)
+    cur.execute(selection)
+    for row in cur:
 
-    statement2 = "UPDATE unique_address " \
-                "SET real_out_deg = 1" \
-                " WHERE out_degree = 1"
+        statement = '''
+                        UPDATE hitbtc_trans_eth 
+                        SET usd_total = {1} * {2}* 
+                            (SELECT price FROM hitbtc_trans_usdt 
+                            WHERE EXTRACT(EPOCH FROM ({3}- hitbtc_trans_usdt.timestamp)) < 
+                            1000 LIMIT 1)
+                        WHERE id = {0}'''.format(row[0], row[1], row[2], row[3])
+        #print(statement)
 
-    cur.execute(statement2)
-    con.commit()
+        cur2.execute(statement)
+        con.commit()
 
 
 main()
