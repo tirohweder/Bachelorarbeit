@@ -270,7 +270,7 @@ def getUSDValueForETHtran(cur, con, cur2):
                         UPDATE hitbtc_trans_eth 
                         SET usd_total = {1} * {2}* 
                             (SELECT price FROM hitbtc_trans_usdt 
-                            WHERE EXTRACT(EPOCH FROM ({3}- hitbtc_trans_usdt.timestamp)) < 
+                            WHERE EXTRACT(EPOCH FROM ('{3}'- hitbtc_trans_usdt.timestamp)) < 
                             1000 LIMIT 1)
                         WHERE id = {0}'''.format(row[0], row[1], row[2], row[3])
         #print(statement)
