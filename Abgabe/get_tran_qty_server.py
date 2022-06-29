@@ -2,6 +2,7 @@ import json
 import subprocess
 import psycopg2
 import requests
+from neo4j import GraphDatabase
 
 def main():
     try:
@@ -16,7 +17,7 @@ def main():
         record = cur.fetchone()
         print("You are connected to - ", record, "\n")
 
-        find_qty2(cur, con, cur2)
+        find_qty_api(cur, con, cur2)
 
     except (Exception) as error:
         print("Error while connecting to PostgreSQL", error[0])
@@ -29,8 +30,39 @@ def main():
             con.close()
             print("PostgreSQL connection is closed")
 
+class Neo4jConnection:
 
-def find_qty(cur, con, cur2):
+    def __init__(self, uri, user, pwd):
+        self.__uri = uri
+        self.__user = user
+        self.__pwd = pwd
+        self.__driver = None
+
+        try:
+            self.__driver = GraphDatabase.driver(self.__uri, auth=(self.__user, self.__pwd))
+        except Exception as e:
+            print("Failed to create the driver: ", e)
+
+    def close(self):
+        if self.__driver is not None:
+            self.__driver.close()
+
+    def query(self, query, parameters=None, db=None):
+        assert self.__driver is not None, "Driver not initialized!"
+        session = None
+        response = None
+
+        try:
+            session = self.__driver.session(database=db) if db is not None else self.__driver.session()
+            response = list(session.run(query, parameters))
+        except Exception as e:
+            print("Query failed:", e)
+        finally:
+            if session is not None:
+                session.close()
+        return response
+
+def find_qty_bitcoinclient(cur, con, cur2):
     selection = 'SELECT * FROM incoming_transactions ' \
                 "WHERE qty IS NULL"
     # writing at 2,5 transactions per second -> i will need 1255725.2 seconds to complete whole stuff -> 14,53 days yay
@@ -59,29 +91,22 @@ def find_qty(cur, con, cur2):
             # dont have to store data to prevent bloating the UTXO database
             try:
                 if i["scriptPubKey"]["address"] == address:
-                    # print(i["value"])
-
-                    statement = "UPDATE incoming_transactions " \
-                                "SET qty = " + str(i["value"]) + \
-                                " WHERE txid= " + "'" + txid + "'" + " AND inc_address= " + "'" + address + "'"
-
-                    # print(statement)
+                    statement = '''
+                                UPDATE incoming_transactions 
+                                SET qty =  {0}
+                                WHERE txid= '{1}' AND inc_address= '{2}'
+                    '''.format(str(i["value"]),txid,address)
 
                     cur2.execute(statement)
                     con.commit()
             except Exception:
                 pass
 
-    # value_of_depos = formated["vout"][0]["value"]
-    # destin_addr = formated["vout"][0]["scriptPubKey"]["address"]
-    # print (value_of_depos, destin_addr)
-    # print(json.dumps(formated, indent=4, sort_keys=True))
 
-    #ssh.close()
 
-def find_qty2(cur, con, cur2):
-    selection = 'SELECT * FROM depositing_transactions ' \
-                "WHERE qty IS NULL"
+def find_qty_api(cur, con, cur2):
+    selection = '''SELECT * FROM depositing_transactions
+                   WHERE qty IS NULL'''
 
     cur.execute(selection)
 
@@ -116,4 +141,35 @@ def find_qty2(cur, con, cur2):
             con.commit()
         except Exception:
             pass
+
+
+def find_qty_neo4j(cur, con, cur2):
+    conn = Neo4jConnection(uri='bolt://localhost:7687', user='trohwede', pwd='1687885@uma')
+
+    selection = 'SELECT * FROM incoming_transactions ' \
+                "WHERE qty IS NULL"
+
+    cur.execute(selection)
+
+    for row in cur:
+        query = '''
+                MATCH (t:Transaction)-[r:RECEIVES]->(a:Address)
+                WHERE t.txid = '{0}' AND a.address = '{1}'
+                RETURN r.value AS qty
+                '''.format(row[0], row[3])
+
+        result = conn.query(query)
+
+        total_sum= 0
+        for i in result:
+            total_sum= total_sum+i["qty"]
+
+
+        statement = "UPDATE depositing_transactions " \
+                    "SET qty = " + str(total_sum / 100000000) + \
+                    " WHERE txid= " + "'" + row[0] + "'" + " AND inc_address= " + "'" + row[3] + "'"
+
+        #print(statement)
+        cur2.execute(statement)
+        con.commit()
 main()

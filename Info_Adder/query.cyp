@@ -19,7 +19,10 @@
     WHERE tr.address='32t4wQ8daSM3mfu4aESzChg4RsZEqvFCKa'
     RETURN t.txid AS txid, bl.mediantime
 
-
+    MATCH (t:Transaction)-[r:RECEIVES]->(tr:Address)
+    MATCH (t)-[b:BELONGS_TO]->(bl:Block)
+    WHERE tr.address='32t4wQ8daSM3mfu4aESzChg4RsZEqvFCKa'
+    RETURN t.txid AS txid, bl.mediantime
 
     MATCH (t:Transaction)-[r:RECEIVES]->(a:Address)
     WHERE t.txid = '00de7d29e9c4acc43ff6420a1cf0e420532bbe0503f9cc04287ce8119119af23' AND a.address = '32t4wQ8daSM3mfu4aESzChg4RsZEqvFCKa'
