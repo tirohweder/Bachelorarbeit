@@ -64,8 +64,42 @@ def table_5_2():
     list7 = ['', '', '', 'AND tran_qty = dep_qty', 'AND tran_qty = dep_qty', 'AND tran_qty = dep_qty']
 
     print("Sum Matches")
+    # for id, i in enumerate(list1):
+    #     print(i, ": ")
+    #     for idx, j in enumerate(list2):
+    #         statement = '''
+    #                         SELECT COUNT(*), AVG(match_{0}_{1})
+    #                         FROM deposit_transactions WHERE match_{0}_{1} != 0
+    #                        '''.format(list1[id], list2[idx])
+    #
+    #         statement2 = '''SELECT COUNT(*) FROM deposit_transactions WHERE match_{0}_{1} = 1'''.format(list1[id],
+    #                                                                                                     list2[idx])
+    #         df3 = pds.read_sql(statement, conn)
+    #         df4 = pds.read_sql(statement2, conn)
+    #
+    #         statement3 = '''SELECT COUNT(*) FROM matches_{0} WHERE time_diff <= {1} {2} '''.format(list1[id],
+    #                                                                                                list3[idx],
+    #                                                                                                list7[idx])
+    #
+    #         df = pds.read_sql(statement3, conn)
+    #
+    #         print("     ",
+    #               list6[idx], " & ",
+    #               f"{df['count'][0]:,}", " & ",
+    #               f"{df3['count'][0]:,}", " & ",
+    #               round((df3['count'][0] / total[id]) * 100, 2), " & ",
+    #               round(df3['avg'][0], 2), " & ", f"{df4['count'][0]:,}", " & ",
+    #               round((df4['count'][0] / df3['count'][0]) * 100, 2), " & ",
+    #               round((df4['count'][0] / total[id]) * 100, 2))
+
+
+    ## ADDED FOR TRUNC
+    list1= ['usdt']
+    list19 = ['usdt_trunc']
+    list2 =[ '3_1', '2_1', '1_1']
+
+    list6 =['& 3 & 1', '& 2 & 1', '& 1 & 1']
     for id, i in enumerate(list1):
-        print(i, ": ")
         for idx, j in enumerate(list2):
             statement = '''
                             SELECT COUNT(*), AVG(match_{0}_{1}) 
@@ -77,9 +111,9 @@ def table_5_2():
             df3 = pds.read_sql(statement, conn)
             df4 = pds.read_sql(statement2, conn)
 
-            statement3 = '''SELECT COUNT(*) FROM matches_{0} WHERE time_diff <= {1} {2} '''.format(list1[id],
+            statement3 = '''SELECT COUNT(*) FROM matches_{0} WHERE time_diff <= {1}  '''.format(list19[id],
                                                                                                    list3[idx],
-                                                                                                   list7[idx])
+                                                                                                   )
 
             df = pds.read_sql(statement3, conn)
 
@@ -91,8 +125,6 @@ def table_5_2():
                   round(df3['avg'][0], 2), " & ", f"{df4['count'][0]:,}", " & ",
                   round((df4['count'][0] / df3['count'][0]) * 100, 2), " & ",
                   round((df4['count'][0] / total[id]) * 100, 2))
-
-
 # Prints Table 5.3 / Unique Matches Across Pairs
 def table_5_3():
     list1 = ['usdt', 'eth', 'usdc']
@@ -1475,7 +1507,7 @@ def df_tran_sum_graph_all2():
 
 
 
-aloner()
+table_5_2()
 #occurance_qty_by_pair()
 #occurance_qty_eth_vs_btc()
 #restart()

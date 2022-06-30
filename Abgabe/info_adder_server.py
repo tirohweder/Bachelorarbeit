@@ -6,11 +6,12 @@ from neo4j import GraphDatabase
 
 
 def main():
+
     try:
         con = psycopg2.connect(user="trohwede",
                                password="hallo123",
                                host="localhost",
-                               port="5432",
+                               port="8877",
                                database="trohwede")
         cur = con.cursor()
         cur2 = con.cursor()
@@ -25,7 +26,8 @@ def main():
         #getRealOutDegree(cur,con,cur2)
         #getRealInDegree(cur,con,cur2)
         #doOnlyOnce(cur,con)
-        getUSDValueForETHtran(cur,con,cur2)
+        #getUSDValueForETHtran(cur,con,cur2)
+        originChecker(cur,con,cur2)
 
     except (Exception) as error:
         print("Error while connecting to PostgreSQL", error)
@@ -278,5 +280,43 @@ def getUSDValueForETHtran(cur, con, cur2):
         cur2.execute(statement)
         con.commit()
 
+
+def originChecker(cur, con, cur2):
+    conn = Neo4jConnection(uri='bolt://localhost:7687', user='trohwede', pwd='1687885@uma')
+    list_of_all_addr = []
+
+    selection = '''Select address FROM deposit_address '''
+
+    #print(selection)
+    cur.execute(selection)
+
+
+    for address in cur:
+        try:
+            #nimmt addresse und guckt welche transactions zu der addresse führen
+            query2= '''
+           MATCH (tr:Transaction)-[r:RECEIVES]->(a:Address)
+            WHERE a.address='{0}'
+            MATCH (a2:Address)-[s:SENDS]->(tr2:Transaction)
+            WHERE tr2.txid = tr.txid
+            RETURN a2.address
+            '''.format(address[0])
+
+            origin = conn.query(query2)
+
+            #print(query2)
+            
+            for address2 in origin:
+                #print(address2[0])
+                list_of_all_addr.append(address2[0])
+
+        except (Exception) as error:
+            print("Error while connecting to PostgreSQL", error)
+            print(query2)
+
+    c= Counter(list_of_all_addr)
+
+    for letter, count in c.most_common(20):
+        print(letter, count)
 
 main()
