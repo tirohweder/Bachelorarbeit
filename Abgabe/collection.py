@@ -94,8 +94,8 @@ def table_5_2():
 
 
     ## ADDED FOR TRUNC
-    list1= ['usdt']
-    list19 = ['usdt_trunc']
+    list1= ['eth']
+    list19 = ['eth_trunc']
     list2 =[ '3_1', '2_1', '1_1']
 
     list6 =['& 3 & 1', '& 2 & 1', '& 1 & 1']
@@ -518,7 +518,17 @@ def connWithHost():
     df = pds.read_sql(statement_usdt, conn)
     df['count']= (df['count']/df['count'].sum())*100
 
+    tmp = df[df.real_conn_with_host > 5]
     df = df[df.real_conn_with_host <= 5]
+
+    #rest = {'real_conn_with_host': 6, 'count':tmp['count'].sum()}
+    rest = pds.DataFrame([[6,tmp['count'].sum()]], columns=['real_conn_with_host','count'])
+    df = pds.concat([df,rest])
+
+
+
+    xlabel = ['',r'1', r'2', r'3', r'4', r'5', r'>5']
+    x = np.arange(len(xlabel))
 
     fig, ax = plt.subplots()
     bars = ax.bar(df['real_conn_with_host'], df['count'], label='Deposit Addresses', color='#2ca25f')
@@ -526,7 +536,7 @@ def connWithHost():
     ax.bar_label(bars, fmt='%0.2f')
     ax.set_xlabel('Outgoing Transactions')
     ax.set_ylabel('Percent')
-
+    ax.set_xticks(x, xlabel)
     plt.legend()
     plt.yscale('log')
     plt.show()
@@ -1507,7 +1517,7 @@ def df_tran_sum_graph_all2():
 
 
 
-table_5_2()
+connWithHost()
 #occurance_qty_by_pair()
 #occurance_qty_eth_vs_btc()
 #restart()

@@ -87,9 +87,9 @@ def find_match(cur, con,cur2,cur3):
 
 def find_match_trunc(cur, con,cur2,cur3):
     # USDT and ETH = 24/01/19, USDC = 12/02/19
-    changeDate = '12/02/19'
+    changeDate = '24/01/19'
     #USDT, ETH, USDC
-    currency= 'usdc'
+    currency= 'usdt'
     # USDT USDC = SELL, ETH = BUY
     side= 'sell'
     #USDT, USDC = qty, ETH= trade_size_btc as qty

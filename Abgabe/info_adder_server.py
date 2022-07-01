@@ -11,7 +11,7 @@ def main():
         con = psycopg2.connect(user="trohwede",
                                password="hallo123",
                                host="localhost",
-                               port="8877",
+                               port="5432",
                                database="trohwede")
         cur = con.cursor()
         cur2 = con.cursor()
@@ -316,7 +316,12 @@ def originChecker(cur, con, cur2):
 
     c= Counter(list_of_all_addr)
 
-    for letter, count in c.most_common(20):
-        print(letter, count)
+    for letter, count in c:
+        statement = ''' 
+                INSERT INTO origin (address, count)
+                VALUES ('{0}','{1}')
+        '''.format(letter,count)
 
+        cur2.execute(statement)
+        con.commit()
 main()
