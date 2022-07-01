@@ -1,9 +1,10 @@
 import numpy as np
+import pandas as pd
 import psycopg2
 import datetime
 from collections import Counter
 from neo4j import GraphDatabase
-
+import pandas as pds
 
 def main():
 
@@ -284,7 +285,7 @@ def getUSDValueForETHtran(cur, con, cur2):
 def originChecker(cur, con, cur2):
     conn = Neo4jConnection(uri='bolt://localhost:7687', user='trohwede', pwd='1687885@uma')
     list_of_all_addr = []
-
+    qty = []
     selection = '''Select address FROM deposit_address '''
 
     #print(selection)
@@ -299,7 +300,7 @@ def originChecker(cur, con, cur2):
             WHERE a.address='{0}'
             MATCH (a2:Address)-[s:SENDS]->(tr2:Transaction)
             WHERE tr2.txid = tr.txid
-            RETURN a2.address
+            RETURN a2.address , s.value
             '''.format(address[0])
 
             origin = conn.query(query2)
@@ -309,18 +310,22 @@ def originChecker(cur, con, cur2):
             for address2 in origin:
                 #print(address2[0])
                 list_of_all_addr.append(address2[0])
+                qty.append(address2[1])
 
         except (Exception) as error:
             print("Error while connecting to PostgreSQL", error)
             print(query2)
 
-    c= Counter(list_of_all_addr)
 
-    for letter, count in c:
+    df = pds.DataFrame({'address':list_of_all_addr, 'qty':qty})
+    df2 = df.groupby(by='address').sum()
+
+
+    for addr2, qty2 in df2.itertuples():
         statement = ''' 
                 INSERT INTO origin (address, count)
                 VALUES ('{0}','{1}')
-        '''.format(letter,count)
+        '''.format(addr2,qty2)
 
         cur2.execute(statement)
         con.commit()
