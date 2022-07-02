@@ -12,7 +12,7 @@ def main():
         con = psycopg2.connect(user="trohwede",
                                password="hallo123",
                                host="localhost",
-                               port="5432",
+                               port="8877",
                                database="trohwede")
         cur = con.cursor()
         cur2 = con.cursor()
@@ -28,7 +28,8 @@ def main():
         #getRealInDegree(cur,con,cur2)
         #doOnlyOnce(cur,con)
         #getUSDValueForETHtran(cur,con,cur2)
-        originChecker(cur,con,cur2)
+        #originChecker(cur,con,cur2)
+        densityChecker(cur,con,cur2)
 
     except (Exception) as error:
         print("Error while connecting to PostgreSQL", error)
@@ -329,4 +330,69 @@ def originChecker(cur, con, cur2):
 
         cur2.execute(statement)
         con.commit()
+
+
+
+def densityChecker(cur,con,cur2):
+
+    # USDT, ETH, USDC
+    currency = ['usdt', 'eth', 'usdc']
+    # USDT USDC = SELL, ETH = BUY
+    side = ['sell', 'buy', 'sell']
+
+    selection = '''
+    SELECT time, qty, txid, inc_address FROM deposit_transactions 
+    '''
+
+    density3 = []
+    density2 = []
+    density1 = []
+    cur.execute(selection)
+
+    for id, curr in enumerate(currency):
+        for row in cur:
+
+            timebordertemp = row[0]
+            timediff0 = datetime.timedelta(minutes=10)
+            lowertime = timebordertemp + timediff0
+
+            timediff3 = datetime.timedelta(hours=3)
+            timediff2 = datetime.timedelta(hours=2)
+            timediff1 = datetime.timedelta(hours=1)
+            timeborder3 = timebordertemp + timediff3
+            timeborder2 = timebordertemp + timediff2
+            timeborder1 = timebordertemp + timediff1
+
+            statement3 = '''
+                SELECT COUNT(*)
+                FROM hitbtc_trans_{3} 
+                WHERE side = '{2}' AND timestamp BETWEEN '{0}' AND '{1}'
+                '''.format(str(lowertime), str(timeborder3), side[id], curr)
+
+            statement2 = '''
+                SELECT COUNT(*)
+                FROM hitbtc_trans_{3} 
+                WHERE side = '{2}' AND timestamp BETWEEN '{0}' AND '{1}'
+                '''.format(str(lowertime), str(timeborder2), side[id], curr)
+
+            statement1 = '''
+                SELECT COUNT(*)
+                FROM hitbtc_trans_{3} 
+                WHERE side = '{2}' AND timestamp BETWEEN '{0}' AND '{1}'
+                '''.format(str(lowertime), str(timeborder1), side[id], curr)
+
+            cur2.execute(statement3)
+            density3.append(cur2.fetchone()[0])
+
+            cur2.execute(statement2)
+            density2.append(cur2.fetchone()[0])
+
+            cur2.execute(statement1)
+            density1.append(cur2.fetchone()[0])
+
+        print(curr)
+        print(" Beta = 3 has avg. density of", sum(density3) / len(density3), len(density3), "", sum(density3))
+        print(" Beta = 2 has avg. density of", sum(density2) / len(density2), len(density2), "", sum(density2))
+        print(" Beta = 1 has avg. density of", sum(density1) / len(density1), len(density1), "", sum(density1))
+
 main()
