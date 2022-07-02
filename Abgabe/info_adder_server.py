@@ -300,7 +300,7 @@ def originChecker(cur, con, cur2):
             WHERE a.address='{0}'
             MATCH (a2:Address)-[s:SENDS]->(tr2:Transaction)
             WHERE tr2.txid = tr.txid
-            RETURN a2.address , s.value
+            RETURN a2.address , r.value
             '''.format(address[0])
 
             origin = conn.query(query2)
@@ -318,14 +318,14 @@ def originChecker(cur, con, cur2):
 
 
     df = pds.DataFrame({'address':list_of_all_addr, 'qty':qty})
-    df2 = df.groupby(by='address').sum()
+    df2 = df.groupby('address').agg(Count=('qty', 'sum'), Value=('qty', 'count'))
 
 
-    for addr2, qty2 in df2.itertuples():
+    for addr2, count, qty2 in df2.itertuples():
         statement = ''' 
                 INSERT INTO origin (address, count)
-                VALUES ('{0}','{1}')
-        '''.format(addr2,qty2)
+                VALUES ('{0}',{1},'{2}')
+        '''.format(addr2,count, qty2)
 
         cur2.execute(statement)
         con.commit()
