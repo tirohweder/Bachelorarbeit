@@ -323,7 +323,7 @@ def originChecker(cur, con, cur2):
 
     for addr2, count, qty2 in df2.itertuples():
         statement = ''' 
-                INSERT INTO origin (address, count)
+                INSERT INTO origin (address, count,qty)
                 VALUES ('{0}',{1},'{2}')
         '''.format(addr2,count, qty2)
 
