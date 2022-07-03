@@ -1,8 +1,14 @@
+import json
+
 import numpy as np
 import pandas as pd
 import psycopg2
 import datetime
 from collections import Counter
+
+
+import requests
+from requests.auth import HTTPBasicAuth
 from neo4j import GraphDatabase
 import pandas as pds
 
@@ -12,7 +18,7 @@ def main():
         con = psycopg2.connect(user="trohwede",
                                password="hallo123",
                                host="localhost",
-                               port="5432",
+                               port="8877",
                                database="trohwede")
         cur = con.cursor()
         cur2 = con.cursor()
@@ -30,6 +36,7 @@ def main():
         #getUSDValueForETHtran(cur,con,cur2)
         #originChecker(cur,con,cur2)
         densityChecker(cur,con,cur2)
+        #originLabel(cur,con,cur2)
 
     except (Exception) as error:
         print("Error while connecting to PostgreSQL", error)
@@ -331,6 +338,43 @@ def originChecker(cur, con, cur2):
         cur2.execute(statement)
         con.commit()
 
+def originLabel(cur, con,cur2):
+    conn = Neo4jConnection(uri='bolt://localhost:7687', user='trohwede', pwd='1687885@uma')
+    list_of_all_addr = []
+    qty = []
+    selection = '''SELECT address FROM origin WHERE label IS NULL'''
+
+    #print(selection)
+    cur.execute(selection)
+
+    for row in cur:
+
+        try:
+
+            url = "https://api.graphsense.info/btc/addresses/" + row[0] +"/tags?pagesize=10"
+            headers = {'Accept': 'application/json', 'Authorization':  '/trlZnh9014X8kosj4mNW6ZaAep+e8+1'}
+
+            response = requests.get(url, headers=headers)
+            edited = json.loads(response.text)
+
+            if (len(edited['address_tags'])>0):
+                statement = '''
+                            UPDATE origin 
+                            SET label = {0}, source ={1} 
+                            WHERE address = '{2}'  '''.format(edited['address_tags'][0]['label'], edited['address_tags'][
+                    0]['source'], row[0])
+                print(edited['address_tags'][0]['label'])
+                cur2.execute(statement)
+                con.commit()
+            else:
+                statement = '''
+                            UPDATE origin 
+                            SET label = '0', source ='0' 
+                            WHERE address = '{0}'  '''.format(row[0])
+                cur2.execute(statement)
+                con.commit()
+        except Exception:
+            print(url)
 
 
 def densityChecker(cur,con,cur2):
@@ -339,18 +383,22 @@ def densityChecker(cur,con,cur2):
     currency = ['usdt', 'eth', 'usdc']
     # USDT USDC = SELL, ETH = BUY
     side = ['sell', 'buy', 'sell']
+    argument = ['', '', r"WHERE time BETWEEN '2018-12-26 16:50:20.971000' and '2023-12-01' "]
 
-    selection = '''
-    SELECT time, qty, txid, inc_address FROM deposit_transactions 
-    '''
+    for id in range (1,len(currency)):
+        curr = currency[id]
+        density3 = []
+        density2 = []
+        density1 = []
 
-    density3 = []
-    density2 = []
-    density1 = []
-    cur.execute(selection)
+        selection = '''
+        SELECT time, qty, txid, inc_address FROM deposit_transactions {0} 
+        '''.format(argument[id])
 
-    for id, curr in enumerate(currency):
+        cur.execute(selection)
+
         for row in cur:
+            #print(curr)
 
             timebordertemp = row[0]
             timediff0 = datetime.timedelta(minutes=10)
@@ -381,14 +429,18 @@ def densityChecker(cur,con,cur2):
                 WHERE side = '{2}' AND timestamp BETWEEN '{0}' AND '{1}'
                 '''.format(str(lowertime), str(timeborder1), side[id], curr)
 
+            #print(statement3)
             cur2.execute(statement3)
             density3.append(cur2.fetchone()[0])
+
 
             cur2.execute(statement2)
             density2.append(cur2.fetchone()[0])
 
+
             cur2.execute(statement1)
             density1.append(cur2.fetchone()[0])
+
 
         print(curr)
         print(" Beta = 3 has avg. density of", sum(density3) / len(density3), len(density3), "", sum(density3))
