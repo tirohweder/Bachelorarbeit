@@ -18,7 +18,7 @@ def main():
         con = psycopg2.connect(user="trohwede",
                                password="hallo123",
                                host="localhost",
-                               port="8877",
+                               port="5432",
                                database="trohwede")
         cur = con.cursor()
         cur2 = con.cursor()
