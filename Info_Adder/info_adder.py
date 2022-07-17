@@ -3,7 +3,8 @@ import psycopg2
 import datetime
 from collections import Counter
 from neo4j import GraphDatabase
-
+import requests
+import json
 
 def main():
     try:
@@ -251,4 +252,14 @@ def getRealInDegree(cur,con,cur2):
         if( len(temp)!= len(unique_outerEdge)):
             print(len(temp), len(unique_outerEdge), row[0])
 
-main()
+
+def blind_pool_checker():
+    parameters = {"till": "2021-12-27 08:24:59.000000", "limit": 10}
+
+    response = requests.get("https://api.hitbtc.com/api/3/public/trades/QTUMETH" , params=parameters)
+    responseformat = json.loads(response.text)
+
+    for i in responseformat:
+        print (i)
+
+blind_pool_checker()

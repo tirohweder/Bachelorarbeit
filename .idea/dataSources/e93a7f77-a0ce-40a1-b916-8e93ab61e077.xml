@@ -3,9 +3,9 @@
   <database-model serializer="dbm" dbms="POSTGRES" family-id="POSTGRES" format-version="4.32">
     <root id="1">
       <DateStyle>dmy</DateStyle>
-      <IntrospectionStateNumber>53445021</IntrospectionStateNumber>
+      <IntrospectionStateNumber>53453278</IntrospectionStateNumber>
       <ServerVersion>14.2</ServerVersion>
-      <StartupTime>1653648935</StartupTime>
+      <StartupTime>1655593051</StartupTime>
       <TimeZones>true ACDT
 true ACSST
 false ACST
@@ -800,8 +800,10 @@ false Zulu
 13388||10|C|G
 13388||-9223372036854775808|U|G
 13388||10|U|G</Grants>
-      <IntrospectionStateNumber>53445023</IntrospectionStateNumber>
+      <IntrospectionStateNumber>53453279</IntrospectionStateNumber>
       <ObjectId>16397</ObjectId>
+      <Relations>sequence|table|41766|41767|1
+</Relations>
       <OwnerName>postgres</OwnerName>
     </database>
     <database id="3" parent="1" name="postgres">
@@ -812,17 +814,17 @@ false Zulu
     <role id="4" parent="1" name="pg_database_owner">
       <ObjectId>6171</ObjectId>
     </role>
-    <role id="5" parent="1" name="pg_read_all_data">
-      <ObjectId>6181</ObjectId>
+    <role id="5" parent="1" name="pg_execute_server_program">
+      <ObjectId>4571</ObjectId>
     </role>
-    <role id="6" parent="1" name="pg_write_all_data">
-      <ObjectId>6182</ObjectId>
-    </role>
-    <role id="7" parent="1" name="pg_monitor">
+    <role id="6" parent="1" name="pg_monitor">
       <ObjectId>3373</ObjectId>
       <RoleGrants>3374
 3375
 3377</RoleGrants>
+    </role>
+    <role id="7" parent="1" name="pg_read_all_data">
+      <ObjectId>6181</ObjectId>
     </role>
     <role id="8" parent="1" name="pg_read_all_settings">
       <ObjectId>3374</ObjectId>
@@ -830,20 +832,20 @@ false Zulu
     <role id="9" parent="1" name="pg_read_all_stats">
       <ObjectId>3375</ObjectId>
     </role>
-    <role id="10" parent="1" name="pg_stat_scan_tables">
-      <ObjectId>3377</ObjectId>
-    </role>
-    <role id="11" parent="1" name="pg_read_server_files">
+    <role id="10" parent="1" name="pg_read_server_files">
       <ObjectId>4569</ObjectId>
     </role>
-    <role id="12" parent="1" name="pg_write_server_files">
-      <ObjectId>4570</ObjectId>
-    </role>
-    <role id="13" parent="1" name="pg_execute_server_program">
-      <ObjectId>4571</ObjectId>
-    </role>
-    <role id="14" parent="1" name="pg_signal_backend">
+    <role id="11" parent="1" name="pg_signal_backend">
       <ObjectId>4200</ObjectId>
+    </role>
+    <role id="12" parent="1" name="pg_stat_scan_tables">
+      <ObjectId>3377</ObjectId>
+    </role>
+    <role id="13" parent="1" name="pg_write_all_data">
+      <ObjectId>6182</ObjectId>
+    </role>
+    <role id="14" parent="1" name="pg_write_server_files">
+      <ObjectId>4570</ObjectId>
     </role>
     <role id="15" parent="1" name="postgres">
       <BypassRls>1</BypassRls>
@@ -4175,7 +4177,23 @@ false Zulu
       <TargetTypeName>xid</TargetTypeName>
       <TargetTypeParentName>pg_catalog</TargetTypeParentName>
     </cast>
-    <extension id="256" parent="2" name="plpgsql">
+    <extension id="256" parent="2" name="fuzzystrmatch">
+      <Comment>determine similarities and distance between strings</Comment>
+      <ObjectId>41819</ObjectId>
+      <StateNumber>53453266</StateNumber>
+      <Version>1.1</Version>
+      <ExtSchemaId>41709</ExtSchemaId>
+      <ExtSchemaName>tagstore</ExtSchemaName>
+    </extension>
+    <extension id="257" parent="2" name="pg_trgm">
+      <Comment>text similarity measurement and index searching based on trigrams</Comment>
+      <ObjectId>41830</ObjectId>
+      <StateNumber>53453267</StateNumber>
+      <Version>1.6</Version>
+      <ExtSchemaId>41709</ExtSchemaId>
+      <ExtSchemaName>tagstore</ExtSchemaName>
+    </extension>
+    <extension id="258" parent="2" name="plpgsql">
       <Comment>PL/pgSQL procedural language</Comment>
       <ObjectId>13740</ObjectId>
       <StateNumber>687</StateNumber>
@@ -4183,21 +4201,21 @@ false Zulu
       <ExtSchemaId>11</ExtSchemaId>
       <ExtSchemaName>pg_catalog</ExtSchemaName>
     </extension>
-    <language id="257" parent="2" name="c">
+    <language id="259" parent="2" name="c">
       <Comment>dynamically-loaded C functions</Comment>
       <ObjectId>13</ObjectId>
       <StateNumber>1</StateNumber>
       <ValidatorName>fmgr_c_validator</ValidatorName>
       <ValidatorSchema>pg_catalog</ValidatorSchema>
     </language>
-    <language id="258" parent="2" name="internal">
+    <language id="260" parent="2" name="internal">
       <Comment>built-in functions</Comment>
       <ObjectId>12</ObjectId>
       <StateNumber>1</StateNumber>
       <ValidatorName>fmgr_internal_validator</ValidatorName>
       <ValidatorSchema>pg_catalog</ValidatorSchema>
     </language>
-    <language id="259" parent="2" name="plpgsql">
+    <language id="261" parent="2" name="plpgsql">
       <Comment>PL/pgSQL procedural language</Comment>
       <HandlerName>plpgsql_call_handler</HandlerName>
       <HandlerSchema>pg_catalog</HandlerSchema>
@@ -4209,7 +4227,7 @@ false Zulu
       <ValidatorName>plpgsql_validator</ValidatorName>
       <ValidatorSchema>pg_catalog</ValidatorSchema>
     </language>
-    <language id="260" parent="2" name="sql">
+    <language id="262" parent="2" name="sql">
       <Comment>SQL-language functions</Comment>
       <ObjectId>14</ObjectId>
       <StateNumber>1</StateNumber>
@@ -4217,116 +4235,121 @@ false Zulu
       <ValidatorName>fmgr_sql_validator</ValidatorName>
       <ValidatorSchema>pg_catalog</ValidatorSchema>
     </language>
-    <schema id="261" parent="2" name="information_schema">
+    <schema id="263" parent="2" name="information_schema">
       <ObjectId>13388</ObjectId>
       <StateNumber>533</StateNumber>
       <OwnerName>postgres</OwnerName>
     </schema>
-    <schema id="262" parent="2" name="pg_catalog">
+    <schema id="264" parent="2" name="pg_catalog">
       <Comment>system catalog schema</Comment>
       <ObjectId>11</ObjectId>
       <StateNumber>526</StateNumber>
       <OwnerName>postgres</OwnerName>
     </schema>
-    <schema id="263" parent="2" name="public">
+    <schema id="265" parent="2" name="public">
       <Comment>standard public schema</Comment>
       <Current>1</Current>
-      <IntrospectionStateNumber>53445023</IntrospectionStateNumber>
+      <IntrospectionStateNumber>53453279</IntrospectionStateNumber>
       <ObjectId>2200</ObjectId>
       <StateNumber>527</StateNumber>
       <OwnerName>postgres</OwnerName>
     </schema>
-    <table id="264" parent="263" name="hitbtc_trans">
+    <schema id="266" parent="2" name="tagstore">
+      <ObjectId>41709</ObjectId>
+      <StateNumber>53453243</StateNumber>
+      <OwnerName>trohwede</OwnerName>
+    </schema>
+    <table id="267" parent="265" name="hitbtc_trans">
       <ObjectId>16417</ObjectId>
       <StateNumber>52830070</StateNumber>
       <AccessMethodId>2</AccessMethodId>
       <OwnerName>postgres</OwnerName>
     </table>
-    <table id="265" parent="263" name="incoming_transactions">
+    <table id="268" parent="265" name="incoming_transactions">
       <ObjectId>16422</ObjectId>
       <StateNumber>53445018</StateNumber>
       <AccessMethodId>2</AccessMethodId>
       <OwnerName>postgres</OwnerName>
     </table>
-    <table id="266" parent="263" name="matches">
+    <table id="269" parent="265" name="matches">
       <ObjectId>25245</ObjectId>
       <StateNumber>53174288</StateNumber>
       <AccessMethodId>2</AccessMethodId>
       <OwnerName>trohwede</OwnerName>
     </table>
-    <table id="267" parent="263" name="unique_address">
+    <table id="270" parent="265" name="unique_address">
       <ObjectId>16884</ObjectId>
       <StateNumber>53357891</StateNumber>
       <AccessMethodId>2</AccessMethodId>
       <OwnerName>postgres</OwnerName>
     </table>
-    <column id="268" parent="264" name="id">
+    <column id="271" parent="267" name="id">
       <DataType>integer|0s</DataType>
       <Position>6</Position>
       <StateNumber>3075836</StateNumber>
       <TypeId>23</TypeId>
     </column>
-    <column id="269" parent="264" name="price">
+    <column id="272" parent="267" name="price">
       <DataType>numeric|0s</DataType>
       <Position>7</Position>
       <StateNumber>52778337</StateNumber>
       <TypeId>1700</TypeId>
     </column>
-    <column id="270" parent="264" name="qty">
+    <column id="273" parent="267" name="qty">
       <DataType>numeric|0s</DataType>
       <Position>8</Position>
       <StateNumber>3075840</StateNumber>
       <TypeId>1700</TypeId>
     </column>
-    <column id="271" parent="264" name="side">
+    <column id="274" parent="267" name="side">
       <DataType>text|0s</DataType>
       <Position>9</Position>
       <StateNumber>52778525</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="272" parent="264" name="timestamp">
+    <column id="275" parent="267" name="timestamp">
       <DataType>timestamp|0s</DataType>
       <Position>10</Position>
       <StateNumber>3075844</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="273" parent="265" name="txid">
+    <column id="276" parent="268" name="txid">
       <DataType>text|0s</DataType>
       <Position>1</Position>
       <StateNumber>37742567</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="274" parent="265" name="time">
+    <column id="277" parent="268" name="time">
       <DataType>timestamp|0s</DataType>
       <Position>3</Position>
       <StateNumber>53174274</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="275" parent="265" name="inc_address">
+    <column id="278" parent="268" name="inc_address">
       <DataType>text|0s</DataType>
       <Position>4</Position>
       <StateNumber>52798914</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="276" parent="265" name="qty">
+    <column id="279" parent="268" name="qty">
       <DataType>numeric|0s</DataType>
       <Position>5</Position>
       <StateNumber>46993704</StateNumber>
       <TypeId>1700</TypeId>
     </column>
-    <column id="277" parent="265" name="nr_of_matches">
+    <column id="280" parent="268" name="nr_of_matches">
       <DataType>numeric|0s</DataType>
       <Position>6</Position>
       <StateNumber>53167689</StateNumber>
       <TypeId>1700</TypeId>
     </column>
-    <column id="278" parent="265" name="block_hash">
+    <column id="281" parent="268" name="block_hash">
       <DataType>text|0s</DataType>
       <Position>7</Position>
       <StateNumber>53445018</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <index id="279" parent="265" name="incoming_transactions_txid_inc_address_index">
+    <index id="282" parent="268" name="incoming_transactions_txid_inc_address_index">
       <ClassIds>3126,3126</ClassIds>
       <ColNames>txid
 inc_address</ColNames>
@@ -4337,67 +4360,67 @@ default</CollationNames>
       <StateNumber>53441695</StateNumber>
       <AccessMethodId>403</AccessMethodId>
     </index>
-    <column id="280" parent="266" name="txid">
+    <column id="283" parent="269" name="txid">
       <DataType>text|0s</DataType>
       <Position>1</Position>
       <StateNumber>53167685</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="281" parent="266" name="tran_qty">
+    <column id="284" parent="269" name="tran_qty">
       <DataType>numeric|0s</DataType>
       <Position>3</Position>
       <StateNumber>53167693</StateNumber>
       <TypeId>1700</TypeId>
     </column>
-    <column id="282" parent="266" name="pair">
+    <column id="285" parent="269" name="pair">
       <DataType>text|0s</DataType>
       <Position>4</Position>
       <StateNumber>53167685</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="283" parent="266" name="tran_id">
+    <column id="286" parent="269" name="tran_id">
       <DataType>numeric|0s</DataType>
       <Position>5</Position>
       <StateNumber>53167685</StateNumber>
       <TypeId>1700</TypeId>
     </column>
-    <column id="284" parent="266" name="dep_qty">
+    <column id="287" parent="269" name="dep_qty">
       <DataType>numeric|0s</DataType>
       <Position>6</Position>
       <StateNumber>53167762</StateNumber>
       <TypeId>1700</TypeId>
     </column>
-    <column id="285" parent="266" name="time_diff">
+    <column id="288" parent="269" name="time_diff">
       <DataType>numeric|0s</DataType>
       <Position>7</Position>
       <StateNumber>53174288</StateNumber>
       <TypeId>1700</TypeId>
     </column>
-    <column id="286" parent="267" name="address">
+    <column id="289" parent="270" name="address">
       <DataType>text|0s</DataType>
       <Position>1</Position>
       <StateNumber>48185942</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="287" parent="267" name="in_degree">
+    <column id="290" parent="270" name="in_degree">
       <DataType>numeric|0s</DataType>
       <Position>6</Position>
       <StateNumber>52825962</StateNumber>
       <TypeId>1700</TypeId>
     </column>
-    <column id="288" parent="267" name="out_degree">
+    <column id="291" parent="270" name="out_degree">
       <DataType>numeric|0s</DataType>
       <Position>7</Position>
       <StateNumber>52825961</StateNumber>
       <TypeId>1700</TypeId>
     </column>
-    <column id="289" parent="267" name="connections_with_host">
+    <column id="292" parent="270" name="connections_with_host">
       <DataType>numeric|0s</DataType>
       <Position>8</Position>
       <StateNumber>52827527</StateNumber>
       <TypeId>1700</TypeId>
     </column>
-    <column id="290" parent="267" name="real_out_deg">
+    <column id="293" parent="270" name="real_out_deg">
       <DataType>numeric|0s</DataType>
       <Position>9</Position>
       <StateNumber>53357891</StateNumber>

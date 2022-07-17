@@ -15,6 +15,7 @@ from scipy import stats
 from scipy.stats import chisquare
 from scipy.stats import chi2_contingency
 from scipy.stats import chi2
+from scipy.interpolate import make_interp_spline, BSpline
 import seaborn as sns
 import plotly.graph_objects as go
 import plotly.express as px
@@ -47,7 +48,6 @@ def table_5_1():
 
         df = pds.read_sql(statement, conn)
         print("     ", 2014 + j, f"{df['count'][0]:,}")
-
 
 # Prints Table 5.2 / Analysis of Matches
 def table_5_2():
@@ -92,8 +92,6 @@ def table_5_2():
                   round((df4['count'][0] / df3['count'][0]) * 100, 2), " & ",
                   round((df4['count'][0] / total[id]) * 100, 2))
 
-
-
 # Prints Table 5.3 / Unique Matches Across Pairs
 def table_5_3():
     list1 = ['usdt', 'eth', 'usdc']
@@ -103,6 +101,7 @@ def table_5_3():
     list5 = [95, 65, 35, 95, 65, 35]
     list6 = ['3 & 2', '2 & 2', '1 & 2', '3 & 0', '2 & 0', '1 & 0']
     list7 = ['qty', 'trade_size_btc', 'qty']
+    list8= ['','','','AND tran_qty= dep_qty','AND tran_qty= dep_qty','AND tran_qty= dep_qty']
     engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
     conn = engine.connect()
 
@@ -112,12 +111,11 @@ def table_5_3():
     for id, i in enumerate(list1):
         print(i, ": ")
         for idx, j in enumerate(list2):
-            # For some reason with beta = 0, the select gives double entries, fixed by grouping unique and selecting
-            # everything then. i dont know why and i dont care its fixed
+
             statement = '''
             SELECT AVG(te) as avg_time_diff, COUNT(*) as unique_hits , AVG(tw) as avg_usd_total,
             AVG(tx) as avg_qty FROM(
-            SELECT AVG(time_diff) as te, COUNT(*), AVG(usd_total) as tw, AVG(hitbtc_trans_{0}.{6}) as tx
+            SELECT AVG(time_diff) as te, COUNT(*), AVG(usd_total) as tw, AVG(hitbtc_trans_{0}.{6}) as tx,tran_id
             FROM matches_{0}
             INNER JOIN deposit_transactions
             on matches_{0}.inc_address = deposit_transactions.inc_address
@@ -126,15 +124,16 @@ def table_5_3():
             AND deposit_transactions.match_eth_{1} = {4}
             AND deposit_transactions.match_usdc_{1} = {5}
             AND time_diff <= {2}
+            {7}
             INNER JOIN hitbtc_trans_{0}
             on matches_{0}.tran_id = hitbtc_trans_{0}.id
-            GROUP BY matches_{0}.inc_address,matches_{0}.txid) as cw
+            GROUP BY matches_{0}.inc_address,matches_{0}.txid, tran_id) as cw
             ;
-            '''.format(i, j, list3[idx], list4[id][0], list4[id][1], list4[id][2], list7[id])
+            '''.format(i, j, list3[idx], list4[id][0], list4[id][1], list4[id][2], list7[id],list8[idx])
 
-            # print(statement)
+            print(statement)
             df = pds.read_sql(statement, conn)
-            print("           ",
+            print("          &",
                   list6[idx], "&",  # Parameters
                   f"{df['unique_hits'][0]:,}", "&",  # Unique Hits Between USDT, ETH, USDC
                   round((df['avg_time_diff'][0]), 2), "&",  # Avg Time Found
@@ -142,19 +141,19 @@ def table_5_3():
                   f"{df['avg_qty'][0]:.4f}", "&",  # AVG qty
                   f"{round(df['avg_usd_total'][0] / df['avg_qty'][0], 2):,}")  # Avg Price Purchased
 
-            statement2 = '''
-            SELECT AVG(time_diff) as time_diff, COUNT(*)
-            FROM matches_{0}
-            INNER JOIN deposit_transactions
-            on matches_{0}.inc_address = deposit_transactions.inc_address
-            AND matches_{0}.txid = deposit_transactions.txid
-            AND deposit_transactions.match_usdt_{1} = {3}
-            AND deposit_transactions.match_eth_{1} = {4}
-            AND deposit_transactions.match_usdc_{1} = {5}
-            AND time_diff <= {2}
-            GROUP BY matches_{0}.inc_address,matches_{0}.txid
-            '''.format(i, j, list3[idx], list4[id][0], list4[id][1], list4[id][2])
-
+            # statement2 = '''
+            # SELECT AVG(time_diff) as time_diff, COUNT(*)
+            # FROM matches_{0}
+            # INNER JOIN deposit_transactions
+            # on matches_{0}.inc_address = deposit_transactions.inc_address
+            # AND matches_{0}.txid = deposit_transactions.txid
+            # AND deposit_transactions.match_usdt_{1} = {3}
+            # AND deposit_transactions.match_eth_{1} = {4}
+            # AND deposit_transactions.match_usdc_{1} = {5}
+            # AND time_diff <= {2}
+            # GROUP BY matches_{0}.inc_address,matches_{0}.txid
+            # '''.format(i, j, list3[idx], list4[id][0], list4[id][1], list4[id][2])
+            #
             # df2 = pds.read_sql(statement2, conn)
             # print(df2['time_diff'].mean())
             # result= stats.ttest_1samp(a=df2, popmean=list5[idx])
@@ -165,7 +164,7 @@ def table_5_3():
             #    print("Difference: NO",p_value)
 
 # Prints Monthly Transaction Volume as a Table
-def table_5_1_2():
+def table_month_disto():
     pair = ['usdt', 'eth', 'usdc']
     side = ['sell', 'buy', 'sell']
     year_offset = [0, 2, 5]
@@ -283,9 +282,7 @@ def plot_month_disto():
     plt.show()
 
     print(sum(usdt_fitted), sum(eth_fitted), sum(usdc_fitted),sum(usdt_unfitted), sum(eth_unfitted), sum(usdc_unfitted))
-# Prints Figure 5.2 / Monthly Transaction Volume (Graph)
 
-# Prints Figure 5.x / Daily Transaction Volume
 def plot_daily_disto2():
     engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
     conn = engine.connect()
@@ -456,11 +453,15 @@ def tran_usd_size():
     x = np.arange(len(xlabel))
 
     fig, ax = plt.subplots()
-    fig.set_size_inches(12,6)
+    fig.set_size_inches(12,7)
 
-    ax.bar(x - 0.2, df2_usdt.values, width=0.2, color='#fee8c8', label='USDT')
-    ax.bar(x, df2_eth.values, width=0.2, color='#fdbb84', label='ETH')
-    ax.bar(x + 0.2, df2_usdc.values, width=0.2, color='#e34a33', label='USDC')
+    print("USDT:",df2_usdt.values )
+    print("ETH :", df2_eth.values)
+    print("USDC:", df2_usdc.values)
+
+    usdt =ax.bar(x - 0.25, df2_usdt.values, width=0.25, color='#fee8c8', label='USDT')
+    eth = ax.bar(x, df2_eth.values, width=0.25, color='#fdbb84', label='ETH')
+    usdc = ax.bar(x + 0.25, df2_usdc.values, width=0.25, color='#e34a33', label='USDC')
     ax.set_xticks(x, xlabel)
     ax.autoscale(tight=True)
     ax.set_axisbelow(True)
@@ -468,7 +469,9 @@ def tran_usd_size():
     ax.set_ylabel('% of Total Trades')
 
 
-
+    ax.bar_label(usdt, fmt='%0.2f')
+    ax.bar_label(eth, fmt='%0.2f')
+    ax.bar_label(usdc, fmt='%0.2f')
 
     ax.legend()
     # plt.subplots_adjust(bottom=0.2)
@@ -482,7 +485,7 @@ def connWithHost():
     engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
     conn = engine.connect()
 
-    statement_usdt = '''SELECT real_conn_with_host, count(*) from deposit_address GROUP BY real_conn_with_host'''
+    statement_usdt = '''SELECT real_in_deg as real_conn_with_host, count(*) from deposit_address GROUP BY real_in_deg'''
 
     df = pds.read_sql(statement_usdt, conn)
     df['count']= (df['count']/df['count'].sum())*100
@@ -503,7 +506,7 @@ def connWithHost():
     bars = ax.bar(df['real_conn_with_host'], df['count'], label='Deposit Addresses', color='#2ca25f')
 
     ax.bar_label(bars, fmt='%0.2f')
-    ax.set_xlabel('Outgoing Transactions')
+    ax.set_xlabel('Incoming Transactions')
     ax.set_ylabel('Percent')
     ax.set_xticks(x, xlabel)
     plt.legend()
@@ -659,9 +662,12 @@ def occurance_qty_by_pair():
     merged_df_usdc.sort_values(by=['qty'], inplace=True)
     merged_df_usdc['diff_count_sum'] = merged_df_usdc.deposit_transactions - merged_df_usdc.hitbtc
 
-    ##############################################################################################
+        ##############################################################################################
     #                                            GRAPH USDT
     ###############################################################################################
+    print(merged_df_usdt.sort_values(by=['hitbtc']))
+    print(merged_df_usdc.sort_values(by=['hitbtc']))
+
 
     fig, axs= plt.subplots(3,2)
     fig.set_size_inches(10.5, 14.85)
@@ -814,7 +820,7 @@ def occurance_qty_eth_vs_btc():
     axs[0,0].legend()
     axs[0,0].set_xlim(0,1)
     axs[0,0].xaxis.set_major_locator(MultipleLocator(0.1))
-    axs[0,0].xaxis.set_minor_locator(AutoMinorLocator(10))
+    axs[0,0].xaxis.set_minor_locator(AutoMinorLocator(2))
     axs[0,0].grid(which='major', axis='x', linestyle='--')
     axs[0,0].grid(which='minor', axis='x', linestyle=':')
     axs[0,0].set_yscale('log')
@@ -860,10 +866,331 @@ def occurance_qty_eth_vs_btc():
     plt.show()
     print("Done")
 
+def occurance_parameter_2_vs_0():
+    engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
+    conn = engine.connect()
+    # SHOWS QTY: THEN HOW MANY OF HITBTC TRAN IS THERE, THEN HOW MANY DEPOSIT TRAN
+
+    ##############################################################################################
+    #                                   USDT 3_2 vs 3_0
+    ###############################################################################################
+
+    statement2_usdt = '''SELECT qty, COUNT(*) as hitbtc FROM "deposit_transactions" WHERE match_usdt_3_2 > 0
+    GROUP BY qty '''
+    df_usdt = pds.read_sql(statement2_usdt, conn)
+    df_usdt['hitbtc'] = (df_usdt['hitbtc']/sum(df_usdt['hitbtc']))*100
+    _df_usdt = df_usdt[df_usdt.qty <= 1]
+    df_usdt.sort_values(by=['qty'], inplace=True)
+
+    print(sum(df_usdt['hitbtc']))
+
+
+    statement2_eth = '''SELECT qty, COUNT(*) as hitbtc FROM "deposit_transactions" WHERE match_usdt_3_0 > 0
+    GROUP BY qty '''
+    df_eth = pds.read_sql(statement2_eth, conn)
+    df_eth['hitbtc'] = (df_eth['hitbtc'] / sum(df_eth['hitbtc'])) * 100
+    df_eth = df_eth[df_eth.qty <= 1]
+    df_eth.sort_values(by=['qty'], inplace=True)
+
+    print(sum(df_eth['hitbtc']))
+    ##############################################################################################
+    #                                            ETH
+    ###############################################################################################
+
+
+
+    statement2_eth2 = '''SELECT qty, COUNT(*) as hitbtc FROM "deposit_transactions" WHERE match_eth_3_2 > 0
+    GROUP BY qty '''
+    df_eth2 = pds.read_sql(statement2_eth2, conn)
+    df_eth2['hitbtc'] = (df_eth2['hitbtc'] / sum(df_eth2['hitbtc'])) * 100
+    df_eth2 = df_eth2[df_eth2.qty <= 1]
+    df_eth2.sort_values(by=['qty'], inplace=True)
+
+    print(sum(df_eth2['hitbtc']))
+
+
+    statement2_usdc = '''SELECT qty, COUNT(*) as hitbtc FROM "deposit_transactions" WHERE match_eth_3_0 > 0
+    GROUP BY qty '''
+    df_usdc = pds.read_sql(statement2_usdc, conn)
+    df_usdc['hitbtc'] = (df_usdc['hitbtc']/sum(df_usdc['hitbtc']))*100
+    df_usdc = df_usdc[df_usdc.qty <= 1]
+    df_usdc.sort_values(by=['qty'], inplace=True)
+
+    print(sum(df_usdc['hitbtc']))
+    ##############################################################################################
+    #                                            USDC
+    ###############################################################################################
+    statement2_eth22 = '''SELECT qty, COUNT(*) as hitbtc FROM "deposit_transactions" WHERE match_usdc_3_2 > 0
+    GROUP BY qty '''
+    df_eth22 = pds.read_sql(statement2_eth22, conn)
+    df_eth22['hitbtc'] = (df_eth22['hitbtc'] / sum(df_eth22['hitbtc'])) * 100
+    df_eth22 = df_eth22[df_eth22.qty <= 1]
+    df_eth22.sort_values(by=['qty'], inplace=True)
+
+    print(sum(df_eth22['hitbtc']))
+
+
+    statement2_usdc2 = '''SELECT qty, COUNT(*) as hitbtc FROM "deposit_transactions" WHERE match_usdc_3_0 > 0
+    GROUP BY qty '''
+    df_usdc2 = pds.read_sql(statement2_usdc2, conn)
+    df_usdc2['hitbtc'] = (df_usdc2['hitbtc']/sum(df_usdc2['hitbtc']))*100
+    df_usdc2 = df_usdc2[df_usdc2.qty <= 1]
+    df_usdc2.sort_values(by=['qty'], inplace=True)
+
+    print(sum(df_usdc2['hitbtc']))
+
+
+    ##############################################################################################
+    #                                            GRAPH USDT
+    ###############################################################################################
+
+    fig, axs= plt.subplots(3,2, sharey= True)
+    fig.set_size_inches(15, 10)
+
+    axs[0,0].plot(df_usdt['qty'],df_usdt['hitbtc'], color="#fee8c8",label='USDT 3_2')
+    axs[0,0].set_ylabel('% of all Transactions')
+
+    axs[0,0].legend()
+    axs[0,0].set_xlim(0,1)
+    axs[0,0].xaxis.set_major_locator(MultipleLocator(0.1))
+    axs[0,0].xaxis.set_minor_locator(AutoMinorLocator(2))
+    axs[0,0].grid(which='major', axis='x', linestyle='--')
+    axs[0,0].grid(which='minor', axis='x', linestyle=':')
+    axs[0,0].set_yscale('log')
+
+    axs[0,1].plot(df_eth['qty'],df_eth['hitbtc'], color="#fee8c8",label='USDT 3_0')
+    axs[0,1].legend()
+    axs[0,1].set_xlim(0,1)
+    axs[0,1].xaxis.set_major_locator(MultipleLocator(0.1))
+    axs[0,1].xaxis.set_minor_locator(AutoMinorLocator(2))
+    axs[0,1].grid(which='major', axis='x', linestyle='--')
+    axs[0,1].grid(which='minor', axis='x', linestyle=':')
+    axs[0,1].set_yscale('log')
+    ##############################################################################################
+    #                                            GRAPH ETH
+    ###############################################################################################
+    axs[1,0].plot(df_eth2['qty'], df_eth2['hitbtc'], color = "#fdbb84", label = 'ETH 3_2' )
+    axs[1,0].legend()
+    axs[1,0].set_xlim(0,1)
+    axs[1,0].xaxis.set_major_locator(MultipleLocator(0.1))
+    axs[1,0].xaxis.set_minor_locator(AutoMinorLocator(2))
+    axs[1,0].grid(which='major', axis='x', linestyle='--')
+    axs[1,0].grid(which='minor', axis='x', linestyle=':')
+    axs[1,0].set_yscale('log')
+    axs[1,0].set_ylabel('% of all Transactions')
+
+
+    axs[1,1].plot( df_usdc['qty'], df_usdc['hitbtc'], color = "#fdbb84", label = 'ETH 3_0')
+    axs[1,1].legend()
+    axs[1,1].set_xlim(0,1)
+    axs[1,1].xaxis.set_major_locator(MultipleLocator(0.1))
+    axs[1,1].xaxis.set_minor_locator(AutoMinorLocator(2))
+    axs[1,1].grid(which='major', axis='x', linestyle='--')
+    axs[1,1].grid(which='minor', axis='x', linestyle=':')
+    axs[1,1].set_yscale('log')
+
+    ##############################################################################################
+    #                                            GRAPH USDC
+    ###############################################################################################
+    axs[2,0].plot(df_eth22['qty'], df_eth22['hitbtc'], color = "#e34a33", label = 'USDC 3_2' )
+    axs[2,0].legend()
+    axs[2,0].set_xlim(0,1)
+    axs[2,0].xaxis.set_major_locator(MultipleLocator(0.1))
+    axs[2,0].xaxis.set_minor_locator(AutoMinorLocator(2))
+    axs[2,0].grid(which='major', axis='x', linestyle='--')
+    axs[2,0].grid(which='minor', axis='x', linestyle=':')
+    axs[2,0].set_yscale('log')
+    axs[2,0].set_ylabel('% of all Transactions')
+    axs[2,0].set_xlabel('Quantity')
+
+    axs[2,1].plot(df_usdc2['qty'], df_usdc2['hitbtc'], color = "#e34a33", label = 'USDC 3_0')
+    axs[2,1].legend()
+    axs[2,1].set_xlim(0,1)
+    axs[2,1].xaxis.set_major_locator(MultipleLocator(0.1))
+    axs[2,1].xaxis.set_minor_locator(AutoMinorLocator(2))
+    axs[2,1].grid(which='major', axis='x', linestyle='--')
+    axs[2,1].grid(which='minor', axis='x', linestyle=':')
+    axs[2,1].set_yscale('log')
+    axs[2,1].set_xlabel('Quantity')
+
+
+
+    plt.show()
+    print("Done")
+
+
+# Analyses how many deposit addresses belong to what
+def deposit_address_analyse():
+    engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
+    conn = engine.connect()
+    statement = '''SELECT address FROM deposit_address '''
+
+    df = pds.read_sql(statement, conn)
+    df['wallet_type'] = df['address'].astype(str).str[0]
+
+    df_1 = df['wallet_type'].value_counts(normalize=True) * 100
+    print(df_1)
+
+
+#time diff analyzed
+def graph_match():
+    engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
+    conn = engine.connect()
+
+    list1 = ['usdt', 'eth', 'usdc']
+    list2 = ['3_2', '2_2', '1_2', '3_0', '2_0', '1_0']
+    list3 = [180, 120, 60, 180, 120, 60]
+    list4 = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+    list5 = ['USDT', 'ETH', 'USDC']
+    list6 = ['3 & 2', '2 & 2', '1 & 2', '3 & 0', '2 & 0', '1 & 0']
+    list7 = ['qty', 'trade_size_btc', 'qty']
+
+    list8= ['','','','AND tran_qty= dep_qty','AND tran_qty= dep_qty','AND tran_qty= dep_qty']
+
+
+    for_test = []
+    expected = [95, 65, 35, 95, 65, 35, 95, 65, 35, 95, 65, 35, 95, 65, 35, 95, 65, 35]
+    colours = ['#f1eef6', '#d0d1e6', '#a6bddb', '#74a9cf','#2b8cbe','#045a8d']
+
+    fig, (ax) = plt.subplots(1, 3)
+    fig.set_size_inches(15, 7.5)
+
+    for id, i in enumerate(list1):
+        print(i, ": ")
+        for idx, j in enumerate(list2):
+            statement = '''
+            SELECT ROUND(time_diff) as time_diff, COUNT(*)
+            FROM matches_{0}
+            INNER JOIN deposit_transactions
+            on matches_{0}.inc_address = deposit_transactions.inc_address
+            AND matches_{0}.txid = deposit_transactions.txid
+            AND deposit_transactions.match_usdt_{1} = {3}
+            AND deposit_transactions.match_eth_{1} = {4}
+            AND deposit_transactions.match_usdc_{1} = {5}
+            AND time_diff <= {2}
+            GROUP BY matches_{0}.inc_address,matches_{0}.txid, time_diff
+            '''.format(i, j, list3[idx], list4[id][0], list4[id][1], list4[id][2])
+
+
+            statement2 = '''
+            SELECT AVG(time_diff) as time_diff, tran_id
+            FROM matches_{0}
+            INNER JOIN deposit_transactions
+            on matches_{0}.inc_address = deposit_transactions.inc_address
+            AND matches_{0}.txid = deposit_transactions.txid
+            AND deposit_transactions.match_usdt_{1} = {3}
+            AND deposit_transactions.match_eth_{1} = {4}
+            AND deposit_transactions.match_usdc_{1} = {5}
+            AND time_diff <= {2}
+            {7}
+            INNER JOIN hitbtc_trans_{0}
+            on matches_{0}.tran_id = hitbtc_trans_{0}.id
+            GROUP BY  tran_id
+            HAVING count(*)=1;
+            ;
+            '''.format(i, j, list3[idx], list4[id][0], list4[id][1], list4[id][2], list7[id],list8[idx])
+
+
+            #print(statement2)
+            df = pds.read_sql(statement2, conn)
+
+            df2= df.drop_duplicates(subset=['tran_id'])
+            df2['time_diff']= df2.time_diff.apply(np.round)
+
+
+            df3= df2["time_diff"].value_counts().to_frame()
+            df3.reset_index(inplace=True)
+            df3.sort_values(by=["index"], inplace=True)
+
+            #print(df3)
+            ax[id].scatter(df3["index"], df3["time_diff"], c=colours[idx],label= list6[idx])
+            a, b = np.polyfit(df3["index"].iloc[1:-1],df3["time_diff"].iloc[1:-1],1)
+            ax[id].plot(df3["index"], a*df3["index"]+b,linestyle='--')
+            print(len(df2.index),'   y = ' + '{:.2f}'.format(b) + ' + {:.2f}'.format(a) + 'x')
+        ax[id].legend()
+        ax[id].set_xlabel("Time Difference in Minutes")
+        ax[id].set_title(list5[id])
+        ax[id].set_yscale('log')
+
+
+
+    ax[0].set_ylabel("Number of Matches")
+    plt.show()
+    print("Done")
+
+
+
+def time():
+    engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
+    conn = engine.connect()
+
+    statement_deposit= ''' SELECT extract(hour from time) FROM deposit_transactions'''
+    df_deposit = pds.read_sql(statement_deposit, conn)
+    df2_deposit = df_deposit["date_part"].value_counts().to_frame()
+    df2_deposit['date_part'] = (df2_deposit['date_part'] / sum(df2_deposit['date_part'])) * 100
+    df2_deposit.reset_index(inplace=True)
+    df2_deposit.sort_values(by=["index"], inplace=True)
+
+
+    statement_usdt = ''' SELECT extract(hour from timestamp) FROM hitbtc_trans_usdt WHERE side='sell' '''
+    df_usdt = pds.read_sql(statement_usdt, conn)
+    df2_usdt = df_usdt["date_part"].value_counts().to_frame()
+    df2_usdt['date_part'] = (df2_usdt['date_part'] / sum(df2_usdt['date_part'])) * 100
+    df2_usdt.reset_index(inplace=True)
+    df2_usdt.sort_values(by=["index"], inplace=True)
+
+    statement_eth = ''' SELECT extract(hour from timestamp) FROM hitbtc_trans_eth WHERE side='buy' '''
+    df_eth = pds.read_sql(statement_eth, conn)
+    df2_eth = df_eth["date_part"].value_counts().to_frame()
+    df2_eth['date_part'] = (df2_eth['date_part'] / sum(df2_eth['date_part'])) * 100
+    df2_eth.reset_index(inplace=True)
+    df2_eth.sort_values(by=["index"], inplace=True)
+
+    statement_usdc= '''  SELECT extract(hour from timestamp) FROM hitbtc_trans_usdc WHERE side='sell' '''
+    df_usdc = pds.read_sql(statement_usdc, conn)
+    df2_usdc = df_usdc["date_part"].value_counts().to_frame()
+    df2_usdc['date_part'] = (df2_usdc['date_part'] / sum(df2_usdc['date_part'])) * 100
+    df2_usdc.reset_index(inplace=True)
+    df2_usdc.sort_values(by=["index"], inplace=True)
+
+    fig, ax = plt.subplots()
+
+    xnew_deposit = np.linspace(df2_deposit["index"].iloc[0], df2_deposit["index"].iloc[-1], 300)
+    spl_deposit = make_interp_spline(df2_deposit["index"], df2_deposit["date_part"], k=3)
+    power_smooth_deposit = spl_deposit(xnew_deposit)
+    ax.plot(xnew_deposit, power_smooth_deposit, label="Dep", color='#43a2ca')
+
+    xnew_usdt = np.linspace(df2_usdt["index"].iloc[0], df2_usdt["index"].iloc[-1], 300)
+    spl_usdt = make_interp_spline(df2_usdt["index"], df2_usdt["date_part"], k=3)
+    power_smooth_usdt = spl_usdt(xnew_usdt)
+    ax.plot(xnew_usdt, power_smooth_usdt, label="USDT", color="#fee8c8")
+
+    xnew_eth = np.linspace(df2_eth["index"].iloc[0], df2_eth["index"].iloc[-1], 300)
+    spl_eth = make_interp_spline(df2_eth["index"], df2_eth["date_part"], k=3)
+    power_smooth_eth = spl_eth(xnew_eth)
+    ax.plot(xnew_eth, power_smooth_eth, label="ETH", color="#fdbb84")
+
+    xnew_usdc = np.linspace(df2_usdc["index"].iloc[0], df2_usdc["index"].iloc[-1], 300)
+    spl_usdc  = make_interp_spline(df2_usdc["index"], df2_usdc["date_part"], k=3)
+    power_smooth_usdc  = spl_usdc (xnew_usdc )
+    ax.plot(xnew_usdc ,power_smooth_usdc, label="USDC", color="#e34a33" )
+
+    # ax.plot(df2_deposit["index"], df2_deposit["date_part"], label="Dep", color='#43a2ca')
+    # ax.plot(df2_usdt["index"], df2_usdt["date_part"], label="USDT", color="#fee8c8")
+    # ax.plot(df2_eth["index"], df2_eth["date_part"], label="ETH", color="#fdbb84")
+    # ax.plot(df2_usdc["index"], df2_usdc["date_part"], label="USDC", color="#e34a33")
+
+    ax.xaxis.set_major_locator(MultipleLocator(2))
+    #plt.xaxis.set_minor_locator(AutoMinorLocator(2))
+    ax.set_ylabel("Number of Matches in Percent")
+    ax.set_xlabel("Hour")
+    plt.legend()
+    plt.show()
+
 ########## IN WORK ######################
 
 # Table 5.4
-def qty_match_ana():
+def matches_alone():
     engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
     conn = engine.connect()
 
@@ -872,35 +1199,31 @@ def qty_match_ana():
     list2 = ['3_2', '2_2', '1_2', '3_0', '2_0', '1_0']
     list6 = ['3 & 2', '2 & 2', '1 & 2', '3 & 0', '2 & 0', '1 & 0']
     list3 = ['sell', 'buy', 'sell']
-    list4 = ['qty', 'ROUND(trade_size_btc,4)', 'qty']
+    list4 = ['qty', 'trade_size_btc', 'qty']
+
+    beta= ['','','','AND dep_qty = tran_qty','AND dep_qty = tran_qty','AND dep_qty = tran_qty']
+    time_diff=[180,120,60,180,120,60]
     for id, currency in enumerate(list1):
+        statement2 = '''SELECT {2} as qty, COUNT(*) as hitbtc_qty_count FROM "hitbtc_trans_{0}" WHERE side= '{1}' 
+        GROUP BY {2} 
+        HAVING COUNT(*)>0'''.format(currency, list3[id], list4[id])
+        df2 = pds.read_sql(statement2, conn)
+        print(f"{len(df2.index):,}")
+
         for idi,j in enumerate(list2):
-            statement = '''SELECT qty,SUM(match_{0}_{1}) as deposit_match_total FROM "deposit_transactions" GROUP BY 
-            qty HAVING SUM(match_{0}_{1}) >0 '''.format(currency, j)
-            df = pds.read_sql(statement, conn)
-            statement2 = '''SELECT {2} as qty, COUNT(*) as hitbtc_qty_count FROM "hitbtc_trans_{0}" WHERE side= '{1}' 
-            GROUP 
-            BY {2} 
-            HAVING COUNT(*)>0'''.format(currency, list3[id], list4[id])
-            df2 = pds.read_sql(statement2, conn)
+            statement = '''SELECT dep_qty,COUNT(*) FROM "matches_{0}"  WHERE time_diff <= {2} {3} GROUP BY 
+            dep_qty'''.format(
+                currency, j,time_diff[idi], beta[idi])
+            df = pds.read_sql(statement, conn, )
 
-            merged_df = df2.merge(df, how='left', on=['qty'])
-            print(merged_df)
-
-            less_df = merged_df[merged_df['deposit_match_total'].notna()]
-
-            less_df.sort_values(by=['qty'], inplace=True)
-            less_df = less_df.reset_index()
-            less_df.drop('index', axis=1, inplace=True)
-
-            #print(less_df)
-            less_df2 = less_df.drop(less_df[less_df.qty > 1].index)
+            statement3 = '''SELECT tran_qty,COUNT(*) FROM "matches_{0}"  WHERE time_diff <= {2} {3} GROUP BY 
+            tran_qty'''.format(
+                currency, j,time_diff[idi], beta[idi])
+            df3 = pds.read_sql(statement3, conn, )
 
 
+            print("&","&",list6[idi],  "&", f"{len(df3.index):,}",  "&", f"{len(df.index):,}", r" \\")
 
-            print("&",f"{len(df2.index):,}","&",list6[idi],  "&", f"{len(df.index):,}","&",f"{len(less_df.index):,}",\
-            "&",
-                  f"{len(less_df2.index):,}",'&',round(len(less_df2.index) / len(less_df.index) * 100, 2))
 
 # Totally Alone
 def aloner():
@@ -936,7 +1259,6 @@ def aloner():
             print(statement)
             df = pds.read_sql(statement, conn)
             print(list6[idi],df['count'][0])
-
 
 
 
@@ -1236,169 +1558,119 @@ def benfords_law3():
 
 
 
-def deposit_address_analyse():
-    engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
-    conn = engine.connect()
-    statement = '''SELECT address FROM deposit_address '''
+def plot_grwoth():
+    month= [1,2,3]
+    usdt_2 = [0.18,0.14,0.12]
+    usdt_0 = [0.44,0.34,0.29]
+    eth_fitted = [0,0,0]
+    usdc_fitted = [0,0,0]
 
-    df = pds.read_sql(statement, conn)
-    df['wallet_type'] = df['address'].astype(str).str[0]
+    eth_unfitted = [177058,176060,175518]
+    usdc_unfitted = [84948,84385,84162.9]
 
-    df_1 = df['wallet_type'].value_counts(normalize=True) * 100
-    print(df_1)
+    fig, (ax1,ax2)= plt.subplots(1,2)
+    fig.set_size_inches(14,6)
 
-def occurance_parameter_2_vs_0():
-    engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
-    conn = engine.connect()
-    # SHOWS QTY: THEN HOW MANY OF HITBTC TRAN IS THERE, THEN HOW MANY DEPOSIT TRAN
+    ax1.plot(month,usdt_2,  label="USDT", color='#fee8c8',  marker='o')
+    ax1.plot(month,eth_fitted,  label="ETH", color='#fdbb84',marker='o')
+    ax1.plot(month,usdc_fitted,  label="USDC", color='#e34a33',  marker='o')
 
-    ##############################################################################################
-    #                                   USDT 3_2 vs 3_0
-    ###############################################################################################
-
-    statement2_usdt = '''SELECT qty, COUNT(*) as hitbtc FROM "deposit_transactions" WHERE match_usdt_3_2 > 0
-    GROUP BY qty '''
-    df_usdt = pds.read_sql(statement2_usdt, conn)
-    df_usdt['hitbtc'] = (df_usdt['hitbtc']/sum(df_usdt['hitbtc']))*100
-    _df_usdt = df_usdt[df_usdt.qty <= 1]
-    df_usdt.sort_values(by=['qty'], inplace=True)
-
-    print(sum(df_usdt['hitbtc']))
-
-
-    statement2_eth = '''SELECT qty, COUNT(*) as hitbtc FROM "deposit_transactions" WHERE match_usdt_3_0 > 0
-    GROUP BY qty '''
-    df_eth = pds.read_sql(statement2_eth, conn)
-    df_eth['hitbtc'] = (df_eth['hitbtc'] / sum(df_eth['hitbtc'])) * 100
-    df_eth = df_eth[df_eth.qty <= 1]
-    df_eth.sort_values(by=['qty'], inplace=True)
-
-    print(sum(df_eth['hitbtc']))
-    ##############################################################################################
-    #                                            ETH
-    ###############################################################################################
+    ax1.set_xlabel('Weekday')
+    ax1.set_title('Fitted')
+    ax1.set_ylabel('Percent')
+    ax1.legend()
 
 
 
-    statement2_eth2 = '''SELECT qty, COUNT(*) as hitbtc FROM "deposit_transactions" WHERE match_eth_3_2 > 0
-    GROUP BY qty '''
-    df_eth2 = pds.read_sql(statement2_eth2, conn)
-    df_eth2['hitbtc'] = (df_eth2['hitbtc'] / sum(df_eth2['hitbtc'])) * 100
-    df_eth2 = df_eth2[df_eth2.qty <= 1]
-    df_eth2.sort_values(by=['qty'], inplace=True)
+    ax1.plot(month,usdt_0,  label="USDT", color='#e2f5f9',  marker='o')
+    ax2.plot(month,eth_unfitted,  label="ETH", color='#99d8c9',  marker='o')
+    ax2.plot(month,usdc_unfitted,  label="USDC", color='#2ca25f',  marker='o')
 
-    print(sum(df_eth2['hitbtc']))
+    ax2.set_title('Unfitted')
+    ax2.set_xlabel('Weekday')
+    ax2.set_yscale('log')
+    ax2.legend()
 
-
-    statement2_usdc = '''SELECT qty, COUNT(*) as hitbtc FROM "deposit_transactions" WHERE match_eth_3_0 > 0
-    GROUP BY qty '''
-    df_usdc = pds.read_sql(statement2_usdc, conn)
-    df_usdc['hitbtc'] = (df_usdc['hitbtc']/sum(df_usdc['hitbtc']))*100
-    df_usdc = df_usdc[df_usdc.qty <= 1]
-    df_usdc.sort_values(by=['qty'], inplace=True)
-
-    print(sum(df_usdc['hitbtc']))
-    ##############################################################################################
-    #                                            USDC
-    ###############################################################################################
-    statement2_eth22 = '''SELECT qty, COUNT(*) as hitbtc FROM "deposit_transactions" WHERE match_usdc_3_2 > 0
-    GROUP BY qty '''
-    df_eth22 = pds.read_sql(statement2_eth22, conn)
-    df_eth22['hitbtc'] = (df_eth22['hitbtc'] / sum(df_eth22['hitbtc'])) * 100
-    df_eth22 = df_eth22[df_eth22.qty <= 1]
-    df_eth22.sort_values(by=['qty'], inplace=True)
-
-    print(sum(df_eth22['hitbtc']))
-
-
-    statement2_usdc2 = '''SELECT qty, COUNT(*) as hitbtc FROM "deposit_transactions" WHERE match_usdc_3_0 > 0
-    GROUP BY qty '''
-    df_usdc2 = pds.read_sql(statement2_usdc2, conn)
-    df_usdc2['hitbtc'] = (df_usdc2['hitbtc']/sum(df_usdc2['hitbtc']))*100
-    df_usdc2 = df_usdc2[df_usdc2.qty <= 1]
-    df_usdc2.sort_values(by=['qty'], inplace=True)
-
-    print(sum(df_usdc2['hitbtc']))
-
-
-    ##############################################################################################
-    #                                            GRAPH USDT
-    ###############################################################################################
-
-    fig, axs= plt.subplots(3,2, sharey= True)
-    fig.set_size_inches(15, 10)
-
-    axs[0,0].plot(df_usdt['qty'],df_usdt['hitbtc'], color="#fee8c8",label='USDT 3_2')
-    axs[0,0].set_ylabel('% of all Transactions')
-
-    axs[0,0].legend()
-    axs[0,0].set_xlim(0,1)
-    axs[0,0].xaxis.set_major_locator(MultipleLocator(0.1))
-    axs[0,0].xaxis.set_minor_locator(AutoMinorLocator(2))
-    axs[0,0].grid(which='major', axis='x', linestyle='--')
-    axs[0,0].grid(which='minor', axis='x', linestyle=':')
-    axs[0,0].set_yscale('log')
-
-    axs[0,1].plot(df_eth['qty'],df_eth['hitbtc'], color="#fee8c8",label='USDT 3_0')
-    axs[0,1].legend()
-    axs[0,1].set_xlim(0,1)
-    axs[0,1].xaxis.set_major_locator(MultipleLocator(0.1))
-    axs[0,1].xaxis.set_minor_locator(AutoMinorLocator(2))
-    axs[0,1].grid(which='major', axis='x', linestyle='--')
-    axs[0,1].grid(which='minor', axis='x', linestyle=':')
-    axs[0,1].set_yscale('log')
-    ##############################################################################################
-    #                                            GRAPH ETH
-    ###############################################################################################
-    axs[1,0].plot(df_eth2['qty'], df_eth2['hitbtc'], color = "#fdbb84", label = 'ETH 3_2' )
-    axs[1,0].legend()
-    axs[1,0].set_xlim(0,1)
-    axs[1,0].xaxis.set_major_locator(MultipleLocator(0.1))
-    axs[1,0].xaxis.set_minor_locator(AutoMinorLocator(2))
-    axs[1,0].grid(which='major', axis='x', linestyle='--')
-    axs[1,0].grid(which='minor', axis='x', linestyle=':')
-    axs[1,0].set_yscale('log')
-    axs[1,0].set_ylabel('% of all Transactions')
-
-
-    axs[1,1].plot( df_usdc['qty'], df_usdc['hitbtc'], color = "#fdbb84", label = 'ETH 3_0')
-    axs[1,1].legend()
-    axs[1,1].set_xlim(0,1)
-    axs[1,1].xaxis.set_major_locator(MultipleLocator(0.1))
-    axs[1,1].xaxis.set_minor_locator(AutoMinorLocator(2))
-    axs[1,1].grid(which='major', axis='x', linestyle='--')
-    axs[1,1].grid(which='minor', axis='x', linestyle=':')
-    axs[1,1].set_yscale('log')
-
-    ##############################################################################################
-    #                                            GRAPH USDC
-    ###############################################################################################
-    axs[2,0].plot(df_eth22['qty'], df_eth22['hitbtc'], color = "#e34a33", label = 'USDC 3_2' )
-    axs[2,0].legend()
-    axs[2,0].set_xlim(0,1)
-    axs[2,0].xaxis.set_major_locator(MultipleLocator(0.1))
-    axs[2,0].xaxis.set_minor_locator(AutoMinorLocator(2))
-    axs[2,0].grid(which='major', axis='x', linestyle='--')
-    axs[2,0].grid(which='minor', axis='x', linestyle=':')
-    axs[2,0].set_yscale('log')
-    axs[2,0].set_ylabel('% of all Transactions')
-    axs[2,0].set_xlabel('Quantity')
-
-    axs[2,1].plot(df_usdc2['qty'], df_usdc2['hitbtc'], color = "#e34a33", label = 'USDC 3_0')
-    axs[2,1].legend()
-    axs[2,1].set_xlim(0,1)
-    axs[2,1].xaxis.set_major_locator(MultipleLocator(0.1))
-    axs[2,1].xaxis.set_minor_locator(AutoMinorLocator(2))
-    axs[2,1].grid(which='major', axis='x', linestyle='--')
-    axs[2,1].grid(which='minor', axis='x', linestyle=':')
-    axs[2,1].set_yscale('log')
-    axs[2,1].set_xlabel('Quantity')
-
-
-
+    plt.legend()
     plt.show()
-    print("Done")
 
+
+def plot_API():
+    df = pd.read_csv(r'C:\Users\rohwe\PycharmProjects\Bachelorarbeit\Abgabe\Additonal_Data\plot-data-API.csv')
+    df2 = pd.read_csv(r'C:\Users\rohwe\PycharmProjects\Bachelorarbeit\Abgabe\Additonal_Data\plot-data-client.csv')
+    df3 = pd.read_csv(r'C:\Users\rohwe\PycharmProjects\Bachelorarbeit\Abgabe\Additonal_Data\plot-data-neo4j.csv')
+    print(df.columns)
+    print(df["y"])
+    plt.plot(df["y"], color= "#de2d26", label= "API")
+    plt.plot(df2["y"], color= "#fc9272", label= "core")
+    plt.plot(df3["y"], color= "#fee0d2", label = "Neo4j")
+    plt.ylabel("PostgreSQL Update")
+    plt.xlabel("Seconds")
+    plt.legend()
+    plt.show()
+
+
+
+
+def table_5_8_both():
+    list1 = ['usdt', 'eth', 'usdc']
+    list2 = ['3_2', '2_2', '1_2', '3_0', '2_0', '1_0']
+    list3 = [180, 120, 60, 180, 120, 60]
+    list4 = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+    list5 = [95, 65, 35, 95, 65, 35]
+    list6 = ['3 & 2', '2 & 2', '1 & 2', '3 & 0', '2 & 0', '1 & 0']
+
+    list8= ['','','','AND tran_qty= dep_qty','AND tran_qty= dep_qty','AND tran_qty= dep_qty']
+
+    list7 = ['qty', 'trade_size_btc', 'qty']
+    engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
+    conn = engine.connect()
+
+    total= [2117028,2117028,1457894]
+
+    for_test = []
+    expected = [95, 65, 35, 95, 65, 35, 95, 65, 35, 95, 65, 35, 95, 65, 35, 95, 65, 35]
+
+    for id, i in enumerate(list1):
+        print(i, ": ")
+        for idx, j in enumerate(list2):
+
+            statement = '''
+            SELECT AVG(time_diff) as time_diff, COUNT(*), AVG(usd_total) as usd_total, AVG(hitbtc_trans_{0}.{6}) as 
+            qty,
+            tran_id
+            FROM matches_{0}
+            INNER JOIN deposit_transactions
+            on matches_{0}.inc_address = deposit_transactions.inc_address
+            AND matches_{0}.txid = deposit_transactions.txid
+            AND deposit_transactions.match_usdt_{1} = {3}
+            AND deposit_transactions.match_eth_{1} = {4}
+            AND deposit_transactions.match_usdc_{1} = {5}
+            AND time_diff <= {2}
+            {7}
+            INNER JOIN hitbtc_trans_{0}
+            on matches_{0}.tran_id = hitbtc_trans_{0}.id
+            GROUP BY  tran_id
+            HAVING count(*)=1
+            ;
+            '''.format(i, j, list3[idx], list4[id][0], list4[id][1], list4[id][2], list7[id],list8[idx])
+
+            print(statement)
+            df = pds.read_sql(statement, conn)
+
+            df2 = df.drop_duplicates(subset=['tran_id'])
+
+            #print(df2)
+
+            print("          &",
+                  list6[idx], "&",  # Parameters
+                  f"{len(df2.index):,}", "&" ,round((len(df2.index)/total[id])*100,2) , "&   &",  # Unique Hits
+                  # Between
+                  # USDT, ETH, USDC
+                  round((df2['time_diff'].mean()), 2), "&",  # Avg Time Found
+                  f"{round(df2['usd_total'].mean()):,}", "&",  # Avg USD Total
+                  f"{df2['qty'].mean():.4f}"  # AVG qty
+                     , r" \\")
 ########## IN WORK ######################
 
 
@@ -1410,7 +1682,7 @@ def benfords_law():
     conn = engine.connect()
     # statement = '''SELECT qty FROM "hitbtc_trans_usdt" WHERE side='sell' '''
     # statement = '''SELECT qty FROM "deposit_transactions" '''
-    statement = '''SELECT dep_qty as qty FROM "matches_usdc" '''
+    statement = '''SELECT qty as qty FROM "deposit_transactions" '''
     df = pds.read_sql(statement, conn)
     df['qty'] = (df['qty']) * 1000000
     df['leading_digit'] = df['qty'].astype(str).str[0].astype(int)
@@ -1468,26 +1740,6 @@ def df_tran_sum_graph_single():
     print(less_df)
 
 ############# DONT KNOW WHY ITS STILL HERE ###################
-
-#Shows Trade Volume by year, average from all exchanges.
-def trade_volume():
-    plt.rcParams["figure.figsize"] = [7.00, 3.50]
-    plt.rcParams["figure.autolayout"] = True
-    columns = ["Timestamp", "trade_volume"]
-    df = pd.read_csv(r"/trade-volume.csv", usecols=columns)
-
-    fig, ax = plt.subplots(figsize=(12, 12))
-    ax.plot(df.Timestamp, df.trade_volume)
-    date_form = DateFormatter("%y")
-    ax.set_xticks([2015, 2016, 2017])
-    plt.show()
-def trade_volume2():
-    df = pd.read_csv(r"/trade-volume.csv")
-
-    fig = px.line(df, x='Date', y='USD')
-
-    fig.show()
-########
 
 def df_tran_sum_graph_all2():
     engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
@@ -1636,26 +1888,4 @@ def df_tran_sum_graph_all2():
 
 
 
-occurance_parameter_2_vs_0()
-#occurance_qty_by_pair()
-#occurance_qty_eth_vs_btc()
-#restart()
-#relationship()
-#trade_volume2()
-#qty_match_ana()
-#table_5_3()
-# table_avg_time2()
-# bubble_x_x()
-# tran_usd_size()
-# df_of_tran_sum()
-# df_tran_sum_graph_single()
-# benfords_law2()
-#df_tran_sum_graph_all2()
-#plot_month_disto()
-
-#plot_month_disto()
-#benfords_law2()
-
-# plotmatchesbyqty5()
-#plot_month_disto()
-
+graph_match()

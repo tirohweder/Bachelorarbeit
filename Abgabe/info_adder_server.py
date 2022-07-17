@@ -18,7 +18,7 @@ def main():
         con = psycopg2.connect(user="trohwede",
                                password="hallo123",
                                host="localhost",
-                               port="5432",
+                               port="8877",
                                database="trohwede")
         cur = con.cursor()
         cur2 = con.cursor()
@@ -33,11 +33,12 @@ def main():
         #getRealOutDegree(cur,con,cur2)
         #getRealInDegree(cur,con,cur2)
         #doOnlyOnce(cur,con)
-        #getUSDValueForETHtran(cur,con,cur2)
+        #getUSDValueForETHtran(cur,con,cur2)3
         #originChecker(cur,con,cur2)
-        densityChecker(cur,con,cur2)
+        #densityChecker(cur,con,cur2)
         #originLabel(cur,con,cur2)
-
+        #entity_adder(cur, con, cur2)
+        entity_label(cur, con, cur2)
     except (Exception) as error:
         print("Error while connecting to PostgreSQL", error)
 
@@ -339,10 +340,10 @@ def originChecker(cur, con, cur2):
         con.commit()
 
 def originLabel(cur, con,cur2):
-    conn = Neo4jConnection(uri='bolt://localhost:7687', user='trohwede', pwd='1687885@uma')
-    list_of_all_addr = []
-    qty = []
-    selection = '''SELECT address FROM origin WHERE label IS NULL'''
+    #selection = '''SELECT address FROM origin where origin.address =
+#(SELECT tags.address FROM tags WHERE tags.address=origin.address)'''
+
+    selection ='''SELECT address, count FROM origin ORDER BY count desc LIMIT 100 '''
 
     #print(selection)
     cur.execute(selection)
@@ -360,11 +361,13 @@ def originLabel(cur, con,cur2):
             if (len(edited['address_tags'])>0):
                 statement = '''
                             UPDATE origin 
-                            SET label = {0}, source ={1} 
+                            SET label = '{0}', source ='{1}' 
                             WHERE address = '{2}'  '''.format(edited['address_tags'][0]['label'], edited['address_tags'][
                     0]['source'], row[0])
-                print(edited['address_tags'][0]['label'])
+                print(row[0],edited['address_tags'][0]['label'])
+                print(statement)
                 cur2.execute(statement)
+
                 con.commit()
             else:
                 statement = '''
@@ -374,7 +377,7 @@ def originLabel(cur, con,cur2):
                 cur2.execute(statement)
                 con.commit()
         except Exception:
-            print(url)
+            print("url")
 
 
 def densityChecker(cur,con,cur2):
@@ -447,4 +450,84 @@ def densityChecker(cur,con,cur2):
         print(" Beta = 2 has avg. density of", sum(density2) / len(density2), len(density2), "", sum(density2))
         print(" Beta = 1 has avg. density of", sum(density1) / len(density1), len(density1), "", sum(density1))
 
+
+
+def entity_adder(cur, con, cur2):
+    selection ='''SELECT address, qty FROM origin ORDER BY qty desc LIMIT 100 '''
+
+    #print(selection)
+    cur.execute(selection)
+
+    for row in cur:
+
+        try:
+
+            url = "https://api.graphsense.info/btc/addresses/" + row[0] +"/entity?include_tags=true"
+            headers = {'Accept': 'application/json', 'Authorization':  '/trlZnh9014X8kosj4mNW6ZaAep+e8+1'}
+
+            response = requests.get(url, headers=headers)
+            edited = json.loads(response.text)
+            print(edited['entity'])
+
+            if (0==0):
+                statement = '''
+                            UPDATE origin 
+                            SET entity = {0} 
+                            WHERE address = '{1}'  '''.format(edited['entity'],row[0])
+                print(row[0],edited['entity'])
+                print(statement)
+                cur2.execute(statement)
+
+                con.commit()
+            else:
+                statement = '''
+                            UPDATE origin 
+                            SET entity = 0 
+                            WHERE address = '{0}'  '''.format(row[0])
+                cur2.execute(statement)
+                con.commit()
+        except Exception as e:
+            print(e)
+
+
+def entity_label(cur,con,cur2):
+    # selection = '''SELECT address FROM origin where origin.address =
+    # (SELECT tags.address FROM tags WHERE tags.address=origin.address)'''
+
+    selection = '''SELECT entity, address, qty FROM origin ORDER BY qty desc LIMIT 100 '''
+
+    # print(selection)
+    cur.execute(selection)
+
+    for row in cur:
+
+        try:
+
+            url = "https://api.graphsense.info/btc/entities/" + str(row[0]) + "/tags?level=entity&pagesize=10"
+            headers = {'Accept': 'application/json', 'Authorization': '/trlZnh9014X8kosj4mNW6ZaAep+e8+1'}
+            #print(url)
+            response = requests.get(url, headers=headers)
+            edited = json.loads(response.text)
+            #print(edited)
+            if (len(edited['entity_tags']) > 0):
+                statement = '''
+                                UPDATE origin 
+                                SET label_2 = '{0}', source_2 ='{1}' 
+                                WHERE address = '{2}'  '''.format(edited['entity_tags'][0]['label'],
+                                                                  edited['entity_tags'][
+                                                                      0]['source'], row[1])
+                print(row[0], edited['entity_tags'][0]['label'])
+                print(statement)
+                cur2.execute(statement)
+
+                con.commit()
+            else:
+                statement = '''
+                                UPDATE origin 
+                                SET label_2 = '0', source_2 ='0' 
+                                WHERE address = '{0}'  '''.format(row[1])
+                cur2.execute(statement)
+                con.commit()
+        except Exception as e:
+            print(e)
 main()
