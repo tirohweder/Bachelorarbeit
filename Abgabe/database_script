@@ -1,0 +1,150 @@
+create table if not exists hitbtc_trans_usdt
+(
+    id        numeric,
+    price     numeric,
+    qty       numeric,
+    side      text,
+    timestamp timestamp,
+    usd_total numeric
+);
+
+create table if not exists hitbtc_trans_eth
+(
+    id               numeric,
+    price            numeric,
+    qty              numeric,
+    side             text,
+    timestamp        timestamp,
+    trade_size_btc   numeric,
+    usd_total        numeric,
+    btc_size_rounded numeric
+);
+
+
+create table if not exists hitbtc_trans_usdc
+(
+    id        numeric,
+    price     numeric,
+    qty       numeric,
+    side      text,
+    timestamp timestamp,
+    usd_total numeric
+);
+
+create table if not exists matches_usdt
+(
+    txid        text,
+    tran_qty    numeric,
+    pair        text,
+    tran_id     numeric,
+    dep_qty     numeric,
+    time_diff   numeric,
+    inc_address text
+);
+
+create table if not exists matches_usdc
+(
+    txid        text,
+    tran_qty    numeric,
+    pair        text,
+    tran_id     numeric,
+    dep_qty     numeric,
+    time_diff   numeric,
+    inc_address text
+);
+
+create table if not exists matches_eth
+(
+    txid        text,
+    tran_qty    numeric,
+    pair        text,
+    tran_id     numeric,
+    dep_qty     numeric,
+    time_diff   numeric,
+    inc_address text
+);
+
+create table if not exists deposit_address
+(
+    address               text,
+    in_degree             numeric,
+    out_degree            numeric,
+    connections_with_host numeric,
+    real_in_deg           numeric,
+    real_out_deg          integer,
+    real_conn_with_host   numeric
+);
+
+create table if not exists deposit_transactions
+(
+    txid           text,
+    time           timestamp,
+    inc_address    text,
+    qty            numeric,
+    match_usdt_3_2 numeric,
+    match_usdt_2_2 integer,
+    match_usdt_1_2 integer,
+    match_usdt_1_0 integer,
+    match_usdt_2_0 integer,
+    match_usdt_3_0 integer,
+    match_usdc_3_2 integer,
+    match_usdc_2_2 integer,
+    match_usdc_1_2 integer,
+    match_usdc_3_0 integer,
+    match_usdc_2_0 integer,
+    match_usdc_1_0 integer,
+    match_eth_3_2  integer,
+    match_eth_2_2  integer,
+    match_eth_1_2  integer,
+    match_eth_3_0  integer,
+    match_eth_2_0  integer,
+    match_eth_1_0  integer
+);
+
+
+create table if not exists potential_deposit_address
+(
+    address               text,
+    in_degree             numeric,
+    out_degree            numeric,
+    connections_with_host numeric,
+    real_in_deg           numeric,
+    real_out_deg          integer,
+    real_conn_with_host   numeric
+);
+
+create table if not exists potential_depositing_transactions
+(
+    txid          text,
+    time          timestamp,
+    inc_address   text,
+    qty           numeric,
+    nr_match_usdt numeric
+);
+
+create table if not exists potential_depositing_transactions_with_blockhash
+(
+    txid          text                                                               not null,
+    block_hash    text,
+    time          timestamp,
+    inc_address   text                                                               not null,
+    qty           numeric,
+    nr_match_usdt numeric
+);
+
+create table if not exists origin
+(
+    address  text,
+    count    numeric,
+    qty      numeric,
+    label    text,
+    source   text,
+    entity   integer,
+    label_2  text,
+    source_2 text
+);
+
+create table if not exists tags
+(
+    address     text
+);

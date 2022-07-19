@@ -1,0 +1,46 @@
+Prerequisites
+PostgreSQL Server
+Python 3.8
+
+How to use:
+
+1. Execute database_script
+
+2. Run potential_dep_address_and_transactions.py
+    2.1. in main() set connection to postgres database, (port standard 5432)
+    2.2. set Neo4j Connection (after class Neo4jConnection)
+
+3. Run hitbtc_trans_data.py
+    3.1 Set
+
+4. Run get_tran_qty.py
+    4.1. With bitcoin_client potential_depositing_transactions_with_blockhash is used,
+         for the other two potential_depositing_transactions, choose one, default API as is fastest
+
+5. Run info_adder.py
+
+   Run all 5.1 functions
+   5.1
+        in_out_degree
+
+        get_real_in_degree
+        get_real_out_degree
+
+        connection_with_host
+        get_real_connection_with_host
+
+
+   5.2 get_usd_value_for_eth() sets usd price for eth transactions
+   5.3
+        origin_checker          | inserts the the amount of origin addresses into table origin
+
+        address_from_tagpack    |
+        origin_label            |
+
+        entity_adder            |
+        entity_label            |
+
+   5.4 density_checker          | is used for analysis
+
+6. Run find_matches.py
+

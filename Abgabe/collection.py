@@ -92,7 +92,7 @@ def table_5_2():
                   round((df4['count'][0] / df3['count'][0]) * 100, 2), " & ",
                   round((df4['count'][0] / total[id]) * 100, 2))
 
-# Prints Table 5.3 / Unique Matches Across Pairs
+# Appendix Table solo
 def table_5_3():
     list1 = ['usdt', 'eth', 'usdc']
     list2 = ['3_2', '2_2', '1_2', '3_0', '2_0', '1_0']
@@ -162,6 +162,67 @@ def table_5_3():
             #    print("Difference: YES", p_value)
             # else:
             #    print("Difference: NO",p_value)
+
+#Table 5 8
+def table_5_8_both():
+    list1 = ['usdt', 'eth', 'usdc']
+    list2 = ['3_2', '2_2', '1_2', '3_0', '2_0', '1_0']
+    list3 = [180, 120, 60, 180, 120, 60]
+    list4 = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+    list5 = [95, 65, 35, 95, 65, 35]
+    list6 = ['3 & 2', '2 & 2', '1 & 2', '3 & 0', '2 & 0', '1 & 0']
+
+    list8= ['','','','AND tran_qty= dep_qty','AND tran_qty= dep_qty','AND tran_qty= dep_qty']
+
+    list7 = ['qty', 'trade_size_btc', 'qty']
+    engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
+    conn = engine.connect()
+
+    total= [2117028,2117028,1457894]
+
+    for_test = []
+    expected = [95, 65, 35, 95, 65, 35, 95, 65, 35, 95, 65, 35, 95, 65, 35, 95, 65, 35]
+
+    for id, i in enumerate(list1):
+        print(i, ": ")
+        for idx, j in enumerate(list2):
+
+            statement = '''
+            SELECT AVG(time_diff) as time_diff, COUNT(*), AVG(usd_total) as usd_total, AVG(hitbtc_trans_{0}.{6}) as 
+            qty,
+            tran_id
+            FROM matches_{0}
+            INNER JOIN deposit_transactions
+            on matches_{0}.inc_address = deposit_transactions.inc_address
+            AND matches_{0}.txid = deposit_transactions.txid
+            AND deposit_transactions.match_usdt_{1} = {3}
+            AND deposit_transactions.match_eth_{1} = {4}
+            AND deposit_transactions.match_usdc_{1} = {5}
+            AND time_diff <= {2}
+            {7}
+            INNER JOIN hitbtc_trans_{0}
+            on matches_{0}.tran_id = hitbtc_trans_{0}.id
+            GROUP BY  tran_id
+            HAVING count(*)=1
+            ;
+            '''.format(i, j, list3[idx], list4[id][0], list4[id][1], list4[id][2], list7[id],list8[idx])
+
+            print(statement)
+            df = pds.read_sql(statement, conn)
+
+            df2 = df.drop_duplicates(subset=['tran_id'])
+
+            #print(df2)
+
+            print("          &",
+                  list6[idx], "&",  # Parameters
+                  f"{len(df2.index):,}", "&" ,round((len(df2.index)/total[id])*100,2) , "&   &",  # Unique Hits
+                  # Between
+                  # USDT, ETH, USDC
+                  round((df2['time_diff'].mean()), 2), "&",  # Avg Time Found
+                  f"{round(df2['usd_total'].mean()):,}", "&",  # Avg USD Total
+                  f"{df2['qty'].mean():.4f}"  # AVG qty
+                     , r" \\")
 
 # Prints Monthly Transaction Volume as a Table
 def table_month_disto():
@@ -1271,13 +1332,8 @@ def plotNrOfMatches():
 
     df = pds.read_sql(statement_usdt, conn)
 
-
     labels = ['0', '1', '2', '3', '4', '5']
     x = np.arange(len(labels))
-
-
-
-
 
     fig, (ax1, ax2) = plt.subplots(1, 2, sharey=True)
 
@@ -1438,6 +1494,73 @@ def df_tran_sum_graph_all():
     plt.show()
 
 
+def occurance_parameter_2_vs_02():
+    engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
+    conn = engine.connect()
+
+    list1 = ['usdt', 'eth', 'usdc']
+    list12= ['USDT', 'ETH', 'USDC']
+    list2 = ['1_2', '1_0' ] # ['3_2', '3_0' ]  ['2_2', '2_0' ]
+    list3 = [60, 60] #  [180, 180] [120, 120]
+    list4 = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+    list8= ['','AND tran_qty= dep_qty']
+    color= ["#fee8c8","#fdbb84","#e34a33"]
+
+    fig, axs= plt.subplots(3,2)
+    fig.set_size_inches(15, 10)
+
+    for id, i in enumerate(list1):
+        print(i, ": ")
+        for idx, j in enumerate(list2):
+            statement = '''
+            SELECT avg(deposit_transactions.qty) as qty, tran_id, COUNT(*)
+            FROM matches_{0}
+            INNER JOIN deposit_transactions
+            on matches_{0}.inc_address = deposit_transactions.inc_address
+            AND matches_{0}.txid = deposit_transactions.txid
+            AND deposit_transactions.match_usdt_{1} = {3}
+            AND deposit_transactions.match_eth_{1} = {4}
+            AND deposit_transactions.match_usdc_{1} = {5}
+            AND time_diff <= {2}
+            {6}
+            INNER JOIN hitbtc_trans_{0}
+            on matches_{0}.tran_id = hitbtc_trans_{0}.id
+            GROUP BY tran_id
+            HAVING count(*)=1
+            ;
+            '''.format(i, j, list3[idx], list4[id][0], list4[id][1], list4[id][2], list8[idx])
+
+            #print(statement)
+            df = pds.read_sql(statement, conn)
+
+            df2 = df['qty'].value_counts(normalize=True) * 100
+            df2.sort_index(inplace=True)
+
+            # df= df_usdc2[df_usdc2.qty <= 1]
+            #df.sort_values(by=['qty'], inplace=True)
+
+            axs[id][idx].plot(df2.index.values, df2.values,color=color[id], marker='D', label=(list12[id]+" "+list2[
+                idx]))
+            axs[id][idx].legend()
+
+            #axs[1,0].set_xlim(0,1)
+            #axs[1,0].xaxis.set_major_locator(MultipleLocator(0.1))
+            #axs[1,0].xaxis.set_minor_locator(AutoMinorLocator(2))
+            axs[id,idx].grid(which='major', axis='x', linestyle='--')
+            #axs[id,idx].grid(which='minor', axis='x', linestyle=':')
+
+
+
+            axs[id][idx].set_yscale('log')
+
+    axs[2, 1].set_xlabel('Quantity')
+    axs[2, 0].set_xlabel('Quantity')
+    axs[2, 0].set_ylabel('% of all Transactions')
+    axs[1, 0].set_ylabel('% of all Transactions')
+    axs[0, 0].set_ylabel('% of all Transactions')
+
+    plt.show()
+    print("Done")
 
 
 
@@ -1611,66 +1734,6 @@ def plot_API():
 
 
 
-
-def table_5_8_both():
-    list1 = ['usdt', 'eth', 'usdc']
-    list2 = ['3_2', '2_2', '1_2', '3_0', '2_0', '1_0']
-    list3 = [180, 120, 60, 180, 120, 60]
-    list4 = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
-    list5 = [95, 65, 35, 95, 65, 35]
-    list6 = ['3 & 2', '2 & 2', '1 & 2', '3 & 0', '2 & 0', '1 & 0']
-
-    list8= ['','','','AND tran_qty= dep_qty','AND tran_qty= dep_qty','AND tran_qty= dep_qty']
-
-    list7 = ['qty', 'trade_size_btc', 'qty']
-    engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
-    conn = engine.connect()
-
-    total= [2117028,2117028,1457894]
-
-    for_test = []
-    expected = [95, 65, 35, 95, 65, 35, 95, 65, 35, 95, 65, 35, 95, 65, 35, 95, 65, 35]
-
-    for id, i in enumerate(list1):
-        print(i, ": ")
-        for idx, j in enumerate(list2):
-
-            statement = '''
-            SELECT AVG(time_diff) as time_diff, COUNT(*), AVG(usd_total) as usd_total, AVG(hitbtc_trans_{0}.{6}) as 
-            qty,
-            tran_id
-            FROM matches_{0}
-            INNER JOIN deposit_transactions
-            on matches_{0}.inc_address = deposit_transactions.inc_address
-            AND matches_{0}.txid = deposit_transactions.txid
-            AND deposit_transactions.match_usdt_{1} = {3}
-            AND deposit_transactions.match_eth_{1} = {4}
-            AND deposit_transactions.match_usdc_{1} = {5}
-            AND time_diff <= {2}
-            {7}
-            INNER JOIN hitbtc_trans_{0}
-            on matches_{0}.tran_id = hitbtc_trans_{0}.id
-            GROUP BY  tran_id
-            HAVING count(*)=1
-            ;
-            '''.format(i, j, list3[idx], list4[id][0], list4[id][1], list4[id][2], list7[id],list8[idx])
-
-            print(statement)
-            df = pds.read_sql(statement, conn)
-
-            df2 = df.drop_duplicates(subset=['tran_id'])
-
-            #print(df2)
-
-            print("          &",
-                  list6[idx], "&",  # Parameters
-                  f"{len(df2.index):,}", "&" ,round((len(df2.index)/total[id])*100,2) , "&   &",  # Unique Hits
-                  # Between
-                  # USDT, ETH, USDC
-                  round((df2['time_diff'].mean()), 2), "&",  # Avg Time Found
-                  f"{round(df2['usd_total'].mean()):,}", "&",  # Avg USD Total
-                  f"{df2['qty'].mean():.4f}"  # AVG qty
-                     , r" \\")
 ########## IN WORK ######################
 
 
@@ -1888,4 +1951,4 @@ def df_tran_sum_graph_all2():
 
 
 
-graph_match()
+occurance_parameter_2_vs_02()
