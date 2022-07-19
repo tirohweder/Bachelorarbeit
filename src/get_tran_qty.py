@@ -1,8 +1,6 @@
 import json
 import subprocess
-import psycopg2
 import requests
-from neo4j import GraphDatabase
 import settings
 
 # Uncomment the version that you want to use

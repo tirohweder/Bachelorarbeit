@@ -1,10 +1,8 @@
 import json
 import numpy as np
-import psycopg2
 import datetime
 from collections import Counter
 import requests
-from neo4j import GraphDatabase
 import pandas as pd
 import yaml
 from pathlib import Path
@@ -25,13 +23,13 @@ def main():
         print("You are connected to - ", record, "\n")
 
         # quicken_data(cur,con)
+
         # in_out_degree(cur,con,cur2)
 
-        # get_real_out_degree(cur,con,cur2)
-        # get_real_in_degree(cur,con,cur2)
+        # real_in_out_degree(cur,con,cur2)
 
-        # connection_with_host(cur, con, cur2)
-        # get_real_connection_with_host(cur, con)
+
+        # conn_with_host(cur, con)
 
         # get_usd_value_for_eth_tran(cur,con,cur2)
 
@@ -84,11 +82,64 @@ def in_out_degree(cur, con, cur2):
         cur2.execute(statement)
         con.commit()
 
-
-def connection_with_host(cur, con):
+def real_in_out_degree(cur, con, cur2):
     conn = settings.conn
-    list_of_all_addr = []
 
+    selection = '''
+                SELECT address FROM potential_deposit_address
+                WHERE real_in_deg IS NULL or real_out_deg IS NULL
+                '''
+
+    cur.execute(selection)
+
+    for row in cur:
+        # nimmt addresse und guckt welche transactions zu der wallet führen
+        query_in_deg = '''
+        MATCH (tr:Transaction)-[s:RECEIVES]->(a:Address)
+        WHERE a.address='{0}'
+        RETURN tr.txid AS txid
+        '''.format(row[0])
+
+        query_out_deg = '''
+        MATCH (a:Address)-[s:SENDS]->(tr:Transaction)
+        WHERE a.address='{0}'
+        RETURN tr.txid AS txid
+        '''.format(row[0])
+
+        result_in_deg = conn.query(query_in_deg)
+        result_out_deg = conn.query(query_out_deg)
+
+        list_in_deg = []
+        list_out_deg = []
+
+        for x in result_in_deg:
+            list_in_deg.append(x["txid"])
+
+        for x in result_out_deg:
+            list_out_deg.append(x["txid"])
+
+        temp_in_deg = np.asarray(list_in_deg)
+        unique_in_deg = np.unique(temp_in_deg)
+
+        temp_out_deg = np.asarray(list_out_deg)
+        unique_out_deg = np.unique(temp_out_deg)
+
+        statement = '''
+                    UPDATE potential_deposit_address
+                    SET real_in_deg= {0}, real_out_deg = {2} 
+                    WHERE address = '{1}'
+                    '''.format(str(len(unique_in_deg)), row[0],str(len(unique_out_deg)))
+
+        cur2.execute(statement)
+        con.commit()
+
+
+
+
+def conn_with_host(cur, con):
+    conn = settings.conn
+    list_conn_with_host = []
+    list_real_conn_with_host = []
     # Returns all transactions that lead to the master address
     query = '''
     MATCH (t:Transaction)-[r:RECEIVES]->(tr:Address)
@@ -105,145 +156,97 @@ def connection_with_host(cur, con):
         WHERE tr.txid='{0}'
         RETURN a.address AS address
         '''.format(incoming_transactions["t_txid"])
-        result3 = conn.query(query3)
-        for x in result3:
-            list_of_all_addr.append(x["address"])
 
-    counts = dict(Counter(list_of_all_addr))
-    duplicates = {key: value for key, value in counts.items()}
+        result3 = conn.query(query3)
+
+        temp_real_con = []
+        for x in result3:
+            list_conn_with_host.append(x["address"])
+            temp_real_con.append(x["address"])
+
+        temp2 = np.asarray(temp_real_con)
+        unique_real_con = np.unique(temp2)
+
+        for x in unique_real_con:
+            list_real_conn_with_host.append(x)
+
+    counts_conn_with_host = dict(Counter(list_conn_with_host))
+    duplicates_conn_with_host = {key: value for key, value in counts_conn_with_host.items()}
+
+    counts_real_conn_with_host = dict(Counter(list_real_conn_with_host))
+    duplicates_real_conn_with_host = {key: value for key, value in counts_real_conn_with_host.items()}
 
     # Returns how often the address in involved in a transaction with the master address
-    for keys in duplicates.keys():
+    for keys in duplicates_conn_with_host.keys():
         statement = '''
                     UPDATE potential_deposit_address 
                     SET connections_with_host= {0}
                     WHERE address = '{1}'
-                    '''.format(str(duplicates[keys]), keys)
+                    '''.format(str(duplicates_conn_with_host[keys]), keys)
+
+        cur.execute(statement)
+        con.commit()
+
+    for keys in duplicates_real_conn_with_host.keys():
+        statement = '''
+                    UPDATE potential_deposit_address 
+                    SET connections_with_host= {0}
+                    WHERE address = '{1}'
+                    '''.format(str(duplicates_real_conn_with_host[keys]), keys)
 
         cur.execute(statement)
         con.commit()
 
 
-def get_real_connection_with_host(cur, con):
-    conn = settings.conn
-    list_of_all_addr = []
-
-    # Returns all transactions that lead to the master address
-    query = '''
-    MATCH (t:Transaction)-[r:RECEIVES]->(tr:Address)
-    WHERE tr.address='{0}'
-    RETURN t.txid AS t_txid
-    '''.format(master_address)
-
-    result = conn.query(query)
-
-    for incoming_transactions in result:
-        # here i get all address that are part of a transaktion
-        query3 = '''
-        MATCH (a:Address)-[s:SENDS]->(tr:Transaction)
-        WHERE tr.txid='{0}'
-        RETURN a.address AS address
-        '''.format(incoming_transactions["t_txid"])
-
-        result3 = conn.query(query3)
-        temp = list()
-        for x in result3:
-            temp.append(x["address"])
-
-        temp2 = np.asarray(temp)
-        unique_address_in_transaction = np.unique(temp2)
-
-        for x in unique_address_in_transaction:
-            list_of_all_addr.append(x)
-
-    counts = dict(Counter(list_of_all_addr))
-    duplicates = {key: value for key, value in counts.items()}
-    for keys in duplicates.keys():
-        statement = '''
-                    UPDATE potential_deposit_address
-                    SET real_conn_with_host= {0}
-                    WHERE address = '{1}'
-                    '''.format(str(duplicates[keys]), keys)
-
-        cur.execute(statement)
-        con.commit()
-
-
-def get_real_out_degree(cur, con, cur2):
-    conn = settings.conn
-
-    selection = '''
-                SELECT address FROM potential_deposit_address
-                WHERE real_out_deg IS NULL
-                '''
-
-    cur.execute(selection)
-    for row in cur:
-        # Returns all transactions that lead to the master address
-        query = '''
-        MATCH (a:Address)-[s:SENDS]->(tr:Transaction)
-        WHERE a.address='{0}'
-        RETURN tr.txid AS txid
-        '''.format(row[0])
-
-        result2 = conn.query(query)
-
-        list_of_outer_edge = []
-
-        for x in result2:
-            list_of_outer_edge.append(x["txid"])
-        temp = np.asarray(list_of_outer_edge)
-        unique_outer_edge = np.unique(temp)
-
-        statement = '''
-                    UPDATE potential_deposit_address
-                    SET real_out_deg= {0}
-                    WHERE address = '{1}'
-                    '''.format(str(len(unique_outer_edge)), row[0])
-
-        cur2.execute(statement)
-        con.commit()
+# def real_conn_with_host(cur, con):
+#     conn = settings.conn
+#     list_of_all_addr = []
+#
+#     # Returns all transactions that lead to the master address
+#     query = '''
+#     MATCH (t:Transaction)-[r:RECEIVES]->(tr:Address)
+#     WHERE tr.address='{0}'
+#     RETURN t.txid AS t_txid
+#     '''.format(master_address)
+#
+#     result = conn.query(query)
+#
+#     for incoming_transactions in result:
+#         # here i get all address that are part of a transaktion
+#         query3 = '''
+#         MATCH (a:Address)-[s:SENDS]->(tr:Transaction)
+#         WHERE tr.txid='{0}'
+#         RETURN a.address AS address
+#         '''.format(incoming_transactions["t_txid"])
+#
+#         result3 = conn.query(query3)
+#         temp = list()
+#         for x in result3:
+#             temp.append(x["address"])
+#
+#         temp2 = np.asarray(temp)
+#         unique_address_in_transaction = np.unique(temp2)
+#
+#         for x in unique_address_in_transaction:
+#             list_of_all_addr.append(x)
+#
+#     counts = dict(Counter(list_of_all_addr))
+#     duplicates = {key: value for key, value in counts.items()}
+#     for keys in duplicates.keys():
+#         statement = '''
+#                     UPDATE potential_deposit_address
+#                     SET real_conn_with_host= {0}
+#                     WHERE address = '{1}'
+#                     '''.format(str(duplicates[keys]), keys)
+#
+#         cur.execute(statement)
+#         con.commit()
 
 
-def get_real_in_degree(cur, con, cur2):
-    conn = settings.conn
-
-    selection = '''
-                SELECT address FROM potential_deposit_address
-                WHERE real_in_deg IS NULL
-                '''
-
-    cur.execute(selection)
-    for row in cur:
-
-        # nimmt addresse und guckt welche transactions zu der wallet führen
-        query = '''
-        MATCH (tr:Transaction)-[s:RECEIVES]->(a:Address)
-        WHERE a.address='{0}'
-        RETURN tr.txid AS txid
-        '''.format(row[0])
-
-        result2 = conn.query(query)
-
-        list_of_inner_edge = list()
-
-        for x in result2:
-            list_of_inner_edge.append(x["txid"])
-
-        temp = np.asarray(list_of_inner_edge)
-        unique_inner_edge = np.unique(temp)
-
-        statement = '''
-                    UPDATE potential_deposit_address
-                    SET real_in_deg= {0} 
-                    WHERE address = ' {1}'
-                    '''.format(str(len(unique_inner_edge)), row[0])
-
-        cur2.execute(statement)
-        con.commit()
 
 
-def get_usd_value_for_eth(cur, con, cur2):
+
+def set_usd_value_for_eth(cur, con, cur2):
     selection = '''
                 SELECT id, qty, price, timestamp FROM hitbtc_trans_eth
                 WHERE usd_total IS NULL

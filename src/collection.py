@@ -1719,9 +1719,9 @@ def plot_grwoth():
 
 
 def plot_API():
-    df = pd.read_csv(r'C:\Users\rohwe\PycharmProjects\Bachelorarbeit\Abgabe\Additonal_Data\plot-data-API.csv')
-    df2 = pd.read_csv(r'C:\Users\rohwe\PycharmProjects\Bachelorarbeit\Abgabe\Additonal_Data\plot-data-client.csv')
-    df3 = pd.read_csv(r'C:\Users\rohwe\PycharmProjects\Bachelorarbeit\Abgabe\Additonal_Data\plot-data-neo4j.csv')
+    df = pd.read_csv(r'/src\Additonal_Data\plot-data-API.csv')
+    df2 = pd.read_csv(r'/src\Additonal_Data\plot-data-client.csv')
+    df3 = pd.read_csv(r'/src\Additonal_Data\plot-data-neo4j.csv')
     print(df.columns)
     print(df["y"])
     plt.plot(df["y"], color= "#de2d26", label= "API")
