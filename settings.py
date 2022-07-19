@@ -7,10 +7,10 @@ global conn
 global master_address
 
 
-con = psycopg2.connect(user="trohwede",  # CHANGE
+con = psycopg2.connect(user="trohwede",
                        password="hallo123",
                        host="localhost",
-                       port="8877",
+                       port="5432", #server 5432 / 8877
                        database="testing")
 
 conn = neo4jconn.Neo4jConnection(uri='bolt://localhost:7687', user='trohwede', pwd='1687885@uma')
