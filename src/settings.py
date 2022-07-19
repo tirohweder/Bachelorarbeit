@@ -1,5 +1,5 @@
 import psycopg2
-from src import neo4jconn
+import neo4jconn
 
 global currency
 global con
