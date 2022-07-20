@@ -115,15 +115,18 @@ def find_address_transactions(cur, con):
 
         ########
 
+        try:
 
+            statement_update_unique_address = '''
+                            INSERT INTO potential_deposit_address(address, in_degree, out_degree, real_in_deg,real_out_deg) 
+                            VALUES ('{0}', '{1}' ,{2}, {3},{4}) 
+                            '''.format(x, result_in_out_degree[0]["inDegree"],
+                                       result_in_out_degree[0]["outDegree"],str(len(unique_in_deg)), str(len(unique_out_deg)))
+            cur.execute(statement_update_unique_address)
+            con.commit()
 
-        statement_update_unique_address = '''
-                        INSERT INTO potential_deposit_address(address, in_degree, out_degree, real_in_deg,real_out_deg) 
-                        VALUES ('{0}', '{1}' ,{2}, {3},{4}) 
-                        '''.format(x, result_in_out_degree[0]["inDegree"],
-                                   result_in_out_degree[0]["outDegree"],str(len(unique_in_deg)), str(len(unique_out_deg)))
-        cur.execute(statement_update_unique_address)
-        con.commit()
+        except:
+            pass
 
     # Returns deposit transactions txid, the time of the transaction and the receiving address
     for x in list_of_all_addr_uniq:
@@ -139,21 +142,27 @@ def find_address_transactions(cur, con):
         # Inserts results into database, except of transactions that originate from the master address itself
         for xx in result4:
             if (xx["address"] != master_address):
-                statement = '''
-                            INSERT INTO potential_depositing_transactions_with_blockhash(txid, block_hash, time, inc_address) 
-                            VALUES ('{0}','{1}' ,'{2}' , '{3}') 
-                            '''.format(xx["txid"], xx["hash"], str(xx["time"]).replace("T", " ")[:19], +xx["address"])
 
-                cur.execute(statement)
-                con.commit()
+                try:
+                    statement = '''
+                                INSERT INTO potential_depositing_transactions_with_blockhash(txid, block_hash, time, inc_address) 
+                                VALUES ('{0}','{1}' ,'{2}' , '{3}') 
+                                '''.format(xx["txid"], xx["hash"], str(xx["time"]).replace("T", " ")[:19], +xx["address"])
 
-                statement = '''
-                            INSERT INTO potential_depositing_transactions(txid, time, inc_address) 
-                            VALUES ('{0}','{1}' ,'{2}') 
-                            '''.format(xx["txid"], str(xx["time"]).replace("T", " ")[:19], +xx["address"])
+                    cur.execute(statement)
+                    con.commit()
 
-                cur.execute(statement)
-                con.commit()
+
+                    statement = '''
+                                INSERT INTO potential_depositing_transactions(txid, time, inc_address) 
+                                VALUES ('{0}','{1}' ,'{2}') 
+                                '''.format(xx["txid"], str(xx["time"]).replace("T", " ")[:19], +xx["address"])
+
+                    cur.execute(statement)
+                    con.commit()
+
+                except:
+                    pass
 
 
 
@@ -187,22 +196,26 @@ def find_address_transactions(cur, con):
     ######################################
 
 def insert_deposit_address_transactions(cur, con):
-    statement = '''
-                INSERT INTO deposit_address 
-                SELECT * FROM potential_deposit_address
-                WHERE real_out_deg - real_conn_with_host = 0
-                '''
-    cur.execute(statement)
-    con.commit()
 
-    statement2 = '''
-                INSERT INTO deposit_transactions (txid, time, inc_address, qty)
-                SELECT txid, time,inc_address, qty
-                FROM potential_depositing_transactions
-                WHERE exists(SELECT 1 FROM deposit_address WHERE address=inc_address)'''
+    try:
+        statement = '''
+                    INSERT INTO deposit_address 
+                    SELECT * FROM potential_deposit_address
+                    WHERE real_out_deg - real_conn_with_host = 0
+                    '''
+        cur.execute(statement)
+        con.commit()
 
-    cur.execute(statement2)
-    con.commit()
+        statement2 = '''
+                    INSERT INTO deposit_transactions (txid, time, inc_address, qty)
+                    SELECT txid, time,inc_address, qty
+                    FROM potential_depositing_transactions
+                    WHERE exists(SELECT 1 FROM deposit_address WHERE address=inc_address)'''
+
+        cur.execute(statement2)
+        con.commit()
+    except:
+        pass
 
 
 main()
