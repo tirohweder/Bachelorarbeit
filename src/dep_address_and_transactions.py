@@ -40,11 +40,12 @@ def find_address_transactions(cur, con):
     MATCH (t:Transaction)-[r:RECEIVES]->(tr:Address)
     WHERE tr.address= '{0}'
     RETURN t.txid AS t_txid
+    LIMIT 100
     '''.format(master_address)
 
-    result2 = conn.query(query2)
+    result = conn.query(query2)
 
-    for incoming_transactions in result2:
+    for incoming_transactions in result:
         # Returns all addresses that are included in the transactions
         query3 = '''
         MATCH (a:Address)-[s:SENDS]->(tr:Transaction)
@@ -56,20 +57,25 @@ def find_address_transactions(cur, con):
 
         list_of_all_addr.extend(x["address"] for x in result3)
 
-        temp_real_con = []
-        for x in result3:
-            list_conn_with_host.append(x["address"])
-            temp_real_con.append(x["address"])
+        # temp_real_con = []
+        # for x in result3:
+        #     list_conn_with_host.append(x["address"])
+        #     temp_real_con.append(x["address"])
+        #
+        # temp2 = np.asarray(temp_real_con)
+        # unique_real_con = np.unique(temp2)
+        #
+        # for x in unique_real_con:
+        #     list_real_conn_with_host.append(x)
 
-        temp2 = np.asarray(temp_real_con)
-        unique_real_con = np.unique(temp2)
-
-        for x in unique_real_con:
-            list_real_conn_with_host.append(x)
+        #print(len(list_conn_with_host))
+        #print(len(list_real_conn_with_host))
 
     # Creates a unique set of addresses
     temp = np.asarray(list_of_all_addr)
     list_of_all_addr_uniq = np.unique(temp)
+
+    #print(len(list_of_all_addr_uniq))
 
     # Inserts unique addresses into Table -> unique_address
     for x in list_of_all_addr_uniq:
@@ -83,50 +89,110 @@ def find_address_transactions(cur, con):
 
         #####################
 
-        query_in_deg = '''
+        query_real_in_deg = '''
         MATCH (tr:Transaction)-[s:RECEIVES]->(a:Address)
         WHERE a.address='{0}'
         RETURN tr.txid AS txid
-        '''.format(x[0])
+        '''.format(x)
 
-        query_out_deg = '''
+        query_real_out_deg = '''
         MATCH (a:Address)-[s:SENDS]->(tr:Transaction)
         WHERE a.address='{0}'
         RETURN tr.txid AS txid
-        '''.format(x[0])
+        '''.format(x)
 
-        result_in_deg = conn.query(query_in_deg)
-        result_out_deg = conn.query(query_out_deg)
+        #print(query_real_in_deg)
 
-        list_in_deg = []
-        list_out_deg = []
+        result_real_in_deg = conn.query(query_real_in_deg)
+        result_real_out_deg = conn.query(query_real_out_deg)
 
-        for x in result_in_deg:
-            list_in_deg.append(x["txid"])
+        list_real_in_deg = []
+        list_real_out_deg = []
 
-        for x in result_out_deg:
-            list_out_deg.append(x["txid"])
+        for w in result_real_in_deg:
+            list_real_in_deg.append(w["txid"])
 
-        temp_in_deg = np.asarray(list_in_deg)
-        unique_in_deg = np.unique(temp_in_deg)
 
-        temp_out_deg = np.asarray(list_out_deg)
-        unique_out_deg = np.unique(temp_out_deg)
+        for w in result_real_out_deg:
+            list_real_out_deg.append(w["txid"])
+
+        temp_real_in_deg = np.asarray(list_real_in_deg)
+        unique_real_in_deg = np.unique(temp_real_in_deg)
+
+        temp_real_out_deg = np.asarray(list_real_out_deg)
+        unique_real_out_deg = np.unique(temp_real_out_deg)
+
+        # conn_with_host_list = []
+        # real_conn_with_host_list = []
+        # for tran in unique_real_out_deg:
+        #     query_conn = '''
+        #     MATCH (t:Transaction)-[r:RECEIVES]->(a:Address)
+        #     WHERE t.txid='{0}'
+        #     RETURN a.address as address
+        #     '''.format(tran)
+        #
+        #     receving_address = conn.query(query_conn)
+        #
+        #     for w in receving_address:
+        #         conn_with_host_list.append(w["address"])
+        #
+        #     real_conn_with_host_list.append(np.unique(conn_with_host_list))
+        #
+        #
+        #
+        #
+        # conn_with_host = np.count_nonzero(conn_with_host_list==master_address)
+        # real_conn_with_host = np.count_nonzero(real_conn_with_host_list==master_address)
+
 
         ########
 
         try:
 
             statement_update_unique_address = '''
-                            INSERT INTO potential_deposit_address(address, in_degree, out_degree, real_in_deg,real_out_deg) 
+                            INSERT INTO potential_deposit_address(address, in_degree, out_degree, real_in_deg,
+                            real_out_deg) 
                             VALUES ('{0}', '{1}' ,{2}, {3},{4}) 
                             '''.format(x, result_in_out_degree[0]["inDegree"],
-                                       result_in_out_degree[0]["outDegree"],str(len(unique_in_deg)), str(len(unique_out_deg)))
+                                       result_in_out_degree[0]["outDegree"],str(len(unique_real_in_deg)),
+                                       str(len(unique_real_out_deg)))
             cur.execute(statement_update_unique_address)
             con.commit()
 
         except:
             pass
+
+
+
+    # counts_conn_with_host = dict(Counter(list_conn_with_host))
+    # duplicates_conn_with_host = {key: value for key, value in counts_conn_with_host.items()}
+    #
+    # counts_real_conn_with_host = dict(Counter(list_real_conn_with_host))
+    # duplicates_real_conn_with_host = {key: value for key, value in counts_real_conn_with_host.items()}
+    #
+    # print(counts_conn_with_host)
+    # print(counts_real_conn_with_host)
+    #
+    # for keys in duplicates_conn_with_host.keys():
+    #     statement = '''
+    #                 UPDATE potential_deposit_address
+    #                 SET conn_with_host= {0}
+    #                 WHERE address = '{1}'
+    #                 '''.format(str(duplicates_conn_with_host[keys]), keys)
+    #
+    #     cur.execute(statement)
+    #     con.commit()
+    #
+    # for keys in duplicates_real_conn_with_host.keys():
+    #     statement = '''
+    #                 UPDATE potential_deposit_address
+    #                 SET real_conn_with_host = {0}
+    #                 WHERE address = '{1}'
+    #                 '''.format(str(duplicates_real_conn_with_host[keys]), keys)
+    #
+    #     cur.execute(statement)
+    #     con.commit()
+
 
     # Returns deposit transactions txid, the time of the transaction and the receiving address
     for x in list_of_all_addr_uniq:
@@ -137,6 +203,7 @@ def find_address_transactions(cur, con):
         RETURN t.txid AS txid, bl.hash AS hash, bl.mediantime AS time, tr.address AS address
         '''.format(x)
 
+        #print(query4)
         result4 = conn.query(query4)
 
         # Inserts results into database, except of transactions that originate from the master address itself
@@ -164,35 +231,10 @@ def find_address_transactions(cur, con):
                 except:
                     pass
 
-
+    print("Done")
 
     ###################
-    counts_conn_with_host = dict(Counter(list_conn_with_host))
-    duplicates_conn_with_host = {key: value for key, value in counts_conn_with_host.items()}
 
-    counts_real_conn_with_host = dict(Counter(list_real_conn_with_host))
-    duplicates_real_conn_with_host = {key: value for key, value in counts_real_conn_with_host.items()}
-
-
-    for keys in duplicates_conn_with_host.keys():
-        statement = '''
-                    UPDATE potential_deposit_address 
-                    SET connections_with_host= {0}
-                    WHERE address = '{1}'
-                    '''.format(str(duplicates_conn_with_host[keys]), keys)
-
-        cur.execute(statement)
-        con.commit()
-
-    for keys in duplicates_real_conn_with_host.keys():
-        statement = '''
-                    UPDATE potential_deposit_address 
-                    SET connections_with_host= {0}
-                    WHERE address = '{1}'
-                    '''.format(str(duplicates_real_conn_with_host[keys]), keys)
-
-        cur.execute(statement)
-        con.commit()
     ######################################
 
 def insert_deposit_address_transactions(cur, con):

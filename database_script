@@ -107,7 +107,7 @@ create table if not exists potential_deposit_address
     address               text,
     in_degree             numeric,
     out_degree            numeric,
-    connections_with_host numeric,
+    conn_with_host numeric,
     real_in_deg           numeric,
     real_out_deg          integer,
     real_conn_with_host   numeric
