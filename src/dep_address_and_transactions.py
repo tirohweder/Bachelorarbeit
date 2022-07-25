@@ -36,14 +36,14 @@ def find_address_transactions(cur, con):
     list_real_conn_with_host = []
 
     # Returns all transactions which the master address receives
-    query2 = '''
+    query = '''
     MATCH (t:Transaction)-[r:RECEIVES]->(tr:Address)
     WHERE tr.address= '{0}'
     RETURN t.txid AS t_txid
-    LIMIT 100
+
     '''.format(master_address)
 
-    result = conn.query(query2)
+    result = conn.query(query)
 
     for incoming_transactions in result:
         # Returns all addresses that are included in the transactions
@@ -57,25 +57,19 @@ def find_address_transactions(cur, con):
 
         list_of_all_addr.extend(x["address"] for x in result3)
 
-        # temp_real_con = []
-        # for x in result3:
-        #     list_conn_with_host.append(x["address"])
-        #     temp_real_con.append(x["address"])
-        #
-        # temp2 = np.asarray(temp_real_con)
-        # unique_real_con = np.unique(temp2)
-        #
-        # for x in unique_real_con:
-        #     list_real_conn_with_host.append(x)
+        temp = []
+        for x in result3:
+            temp.append(x["address"])
+        temp2 = np.asarray(temp)
+        unique_address_in_transaction = np.unique(temp2)
+        for x in unique_address_in_transaction:
+            list_real_conn_with_host.append(x)
 
-        #print(len(list_conn_with_host))
-        #print(len(list_real_conn_with_host))
 
     # Creates a unique set of addresses
     temp = np.asarray(list_of_all_addr)
     list_of_all_addr_uniq = np.unique(temp)
 
-    #print(len(list_of_all_addr_uniq))
 
     # Inserts unique addresses into Table -> unique_address
     for x in list_of_all_addr_uniq:
@@ -112,7 +106,6 @@ def find_address_transactions(cur, con):
         for w in result_real_in_deg:
             list_real_in_deg.append(w["txid"])
 
-
         for w in result_real_out_deg:
             list_real_out_deg.append(w["txid"])
 
@@ -121,31 +114,6 @@ def find_address_transactions(cur, con):
 
         temp_real_out_deg = np.asarray(list_real_out_deg)
         unique_real_out_deg = np.unique(temp_real_out_deg)
-
-        # conn_with_host_list = []
-        # real_conn_with_host_list = []
-        # for tran in unique_real_out_deg:
-        #     query_conn = '''
-        #     MATCH (t:Transaction)-[r:RECEIVES]->(a:Address)
-        #     WHERE t.txid='{0}'
-        #     RETURN a.address as address
-        #     '''.format(tran)
-        #
-        #     receving_address = conn.query(query_conn)
-        #
-        #     for w in receving_address:
-        #         conn_with_host_list.append(w["address"])
-        #
-        #     real_conn_with_host_list.append(np.unique(conn_with_host_list))
-        #
-        #
-        #
-        #
-        # conn_with_host = np.count_nonzero(conn_with_host_list==master_address)
-        # real_conn_with_host = np.count_nonzero(real_conn_with_host_list==master_address)
-
-
-        ########
 
         try:
 
@@ -162,6 +130,34 @@ def find_address_transactions(cur, con):
         except:
             pass
 
+    print("Part 1 Done")
+
+
+    counts_conn = dict(Counter(list_of_all_addr))
+    duplicates_conn = {key:value for key, value in counts_conn.items()}
+    for keys in duplicates_conn.keys():
+        statement = '''
+                    UPDATE potential_deposit_address
+                    SET conn_with_host = {0} 
+                    WHERE address = '{1}'
+                     '''.format(str(duplicates_conn[keys]),keys )
+
+        #print(statement)
+        cur.execute(statement)
+        con.commit()
+
+    counts_real_conn = dict(Counter(list_real_conn_with_host))
+    duplicates_real_conn = {key:value for key, value in counts_real_conn.items()}
+    for keys in duplicates_real_conn.keys():
+        statement = '''
+                    UPDATE potential_deposit_address 
+                    SET real_conn_with_host = {0} 
+                    WHERE address = '{1}'
+                     '''.format(str(duplicates_real_conn[keys]),keys)
+
+        #print(statement)
+        cur.execute(statement)
+        con.commit()
 
 
     # counts_conn_with_host = dict(Counter(list_conn_with_host))
@@ -193,6 +189,7 @@ def find_address_transactions(cur, con):
     #     cur.execute(statement)
     #     con.commit()
 
+    print("Part 2 Done")
 
     # Returns deposit transactions txid, the time of the transaction and the receiving address
     for x in list_of_all_addr_uniq:
