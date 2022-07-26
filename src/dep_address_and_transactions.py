@@ -41,7 +41,7 @@ def find_address_transactions(cur, con):
     MATCH (t:Transaction)-[r:RECEIVES]->(tr:Address)
     WHERE tr.address= '{0}'
     RETURN t.txid AS t_txid
-    LIMIT 10
+
     '''.format(master_address)
 
     result = conn.query(query)
