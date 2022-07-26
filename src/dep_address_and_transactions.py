@@ -116,7 +116,6 @@ def find_address_transactions(cur, con):
     print("Part 1 Done")
 
     counts_conn = dict(Counter(list_of_all_addr))
-    print(counts_conn)
     duplicates_conn = dict(counts_conn)
     for keys in duplicates_conn:
         with contextlib.suppress(Exception):
@@ -127,7 +126,6 @@ def find_address_transactions(cur, con):
                         WHERE address = '{1}'
                          '''.format(str(duplicates_conn[keys]),keys )
 
-            print(statement)
             cur.execute(statement)
             con.commit()
 
