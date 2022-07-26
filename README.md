@@ -10,8 +10,8 @@ Furthermore, the master address can be changed here as well as
 
 
 1. Execute database_script
-2. Run hitbtc_trans_data.py - choose currency
-3. Run potential_dep_address_and_transactions.py only find_address_transactions
+2. Run hitbtc_trans_data.py - choose currency in settings
+3. Run dep_address_and_transactions.py only find_address_transactions
 
 4. Run get_tran_qty.py
     -  With bitcoin_client potential_depositing_transactions_with_blockhash is used,
@@ -21,8 +21,7 @@ Furthermore, the master address can be changed here as well as
 
 
 6. Run info_adder.py
-        in_out_degree           | for_back_up
-    
+        in_out_degree           | ForBackup
         get_real_in_out_degree  | gemacht
     
         conn_with_host          |

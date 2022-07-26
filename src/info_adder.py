@@ -109,15 +109,8 @@ def real_in_out_degree(cur, con, cur2):
         result_in_deg = conn.query(query_in_deg)
         result_out_deg = conn.query(query_out_deg)
 
-        list_in_deg = []
-        list_out_deg = []
-
-        for x in result_in_deg:
-            list_in_deg.append(x["txid"])
-
-        for x in result_out_deg:
-            list_out_deg.append(x["txid"])
-
+        list_in_deg = [x["txid"] for x in result_in_deg]
+        list_out_deg = [x["txid"] for x in result_out_deg]
         temp_in_deg = np.asarray(list_in_deg)
         unique_in_deg = np.unique(temp_in_deg)
 
@@ -167,17 +160,15 @@ def conn_with_host(cur, con):
         temp2 = np.asarray(temp_real_con)
         unique_real_con = np.unique(temp2)
 
-        for x in unique_real_con:
-            list_real_conn_with_host.append(x)
-
+        list_real_conn_with_host.extend(iter(unique_real_con))
     counts_conn_with_host = dict(Counter(list_conn_with_host))
-    duplicates_conn_with_host = {key: value for key, value in counts_conn_with_host.items()}
+    duplicates_conn_with_host = dict(counts_conn_with_host)
 
     counts_real_conn_with_host = dict(Counter(list_real_conn_with_host))
-    duplicates_real_conn_with_host = {key: value for key, value in counts_real_conn_with_host.items()}
+    duplicates_real_conn_with_host = dict(counts_real_conn_with_host)
 
     # Returns how often the address in involved in a transaction with the master address
-    for keys in duplicates_conn_with_host.keys():
+    for keys in duplicates_conn_with_host:
         statement = '''
                     UPDATE potential_deposit_address 
                     SET conn_with_host= {0}
@@ -187,7 +178,7 @@ def conn_with_host(cur, con):
         cur.execute(statement)
         con.commit()
 
-    for keys in duplicates_real_conn_with_host.keys():
+    for keys in duplicates_real_conn_with_host:
         statement = '''
                     UPDATE potential_deposit_address 
                     SET real_conn_with_host= {0}
@@ -221,19 +212,14 @@ def real_conn_with_host(cur, con):
         '''.format(incoming_transactions["t_txid"])
 
         result3 = conn.query(query3)
-        temp = list()
-        for x in result3:
-            temp.append(x["address"])
-
+        temp = [x["address"] for x in result3]
         temp2 = np.asarray(temp)
         unique_address_in_transaction = np.unique(temp2)
 
-        for x in unique_address_in_transaction:
-            list_of_all_addr.append(x)
-
+        list_of_all_addr.extend(iter(unique_address_in_transaction))
         counts = dict(Counter(list_of_all_addr))
-        duplicates = {key: value for key, value in counts.items()}
-        for keys in duplicates.keys():
+        duplicates = dict(counts)
+        for keys in duplicates:
             statement = '''
                         UPDATE potential_deposit_address
                         SET real_conn_with_host= {0}
@@ -352,15 +338,13 @@ def origin_label(cur, con, cur2):
                                            0]['source'], row[0])
                 print(row[0], edited['address_tags'][0]['label'])
                 print(statement)
-                cur2.execute(statement)
-                con.commit()
             else:
                 statement = '''
                             UPDATE origin 
                             SET label = '0', source ='0' 
                             WHERE address = '{0}'  '''.format(row[0])
-                cur2.execute(statement)
-                con.commit()
+            cur2.execute(statement)
+            con.commit()
         except Exception:
             print("url")
 
@@ -380,23 +364,15 @@ def entity_adder(cur, con, cur2):
             edited = json.loads(response.text)
             print(edited['entity'])
 
-            if (0 == 0):
-                statement = '''
+            statement = '''
                             UPDATE origin 
                             SET entity = {0} 
                             WHERE address = '{1}'  '''.format(edited['entity'], row[0])
-                print(row[0], edited['entity'])
-                print(statement)
-                cur2.execute(statement)
+            print(row[0], edited['entity'])
+            print(statement)
+            cur2.execute(statement)
 
-                con.commit()
-            else:
-                statement = '''
-                            UPDATE origin 
-                            SET entity = 0 
-                            WHERE address = '{0}'  '''.format(row[0])
-                cur2.execute(statement)
-                con.commit()
+            con.commit()
         except Exception as e:
             print(e)
 
@@ -409,7 +385,8 @@ def entity_label(cur, con, cur2):
     cur.execute(selection)
     for row in cur:
         try:
-            url = "https://api.graphsense.info/btc/entities/" + str(row[0]) + "/tags?level=entity&pagesize=10"
+            url = f"https://api.graphsense.info/btc/entities/{str(row[0])}/tags?level=entity&pagesize=10"
+
             headers = {'Accept': 'application/json', 'Authorization': settings.graphsense_api_key}
             response = requests.get(url, headers=headers)
             edited = json.loads(response.text)
@@ -422,16 +399,14 @@ def entity_label(cur, con, cur2):
                                                                       0]['source'], row[1])
                 print(row[0], edited['entity_tags'][0]['label'])
                 print(statement)
-                cur2.execute(statement)
-
-                con.commit()
             else:
                 statement = '''
                                 UPDATE origin 
                                 SET label_2 = '0', source_2 ='0' 
                                 WHERE address = '{0}'  '''.format(row[1])
-                cur2.execute(statement)
-                con.commit()
+            cur2.execute(statement)
+
+            con.commit()
         except Exception as e:
             print(e)
 

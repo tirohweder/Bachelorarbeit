@@ -81,15 +81,15 @@ def table_month_disto():
     engine = create_engine('postgresql+psycopg2://trohwede:hallo123@localhost:8877/trohwede')
     conn = engine.connect()
 
-    dic = [[0.0] * 12 for i in range(3)]  # not weighted
-    dic2 = [[0.0] * 12 for i in range(3)]  # weigted
+    dic = [[0.0] * 12 for _ in range(3)]
+    dic2 = [[0.0] * 12 for _ in range(3)]
     for id, currency in enumerate(pair):
         for j in range(total_years[id]):
-            for month in range(12):
-
-                statement2 = '''SELECT COUNT(*) FROM "hitbtc_trans_{0}" WHERE timestamp BETWEEN '{1}-01-01 ' AND 
+            statement2 = '''SELECT COUNT(*) FROM "hitbtc_trans_{0}" WHERE timestamp BETWEEN '{1}-01-01 ' AND 
                 '{2}-01-01' AND side='{3}' '''.format(currency, 2014 + j + year_offset[id], 2015 + j + year_offset[id],
-                                                      side[id])
+                                                  side[id])
+
+            for month in range(12):
 
                 if (month < 11):
                     statement = '''SELECT COUNT(*) FROM "hitbtc_trans_{0}" WHERE timestamp BETWEEN '{1}-{4}-01 ' AND 
@@ -111,8 +111,8 @@ def table_month_disto():
                 if (df['count'][0] != 0 and df2['count'][0] != 0):
                     dic2[id][month] = dic2[id][month] + (df['count'][0] / df2['count'][0])
 
-                # if(id ==1):
-                #   print(df['count'][0], df2['count'][0], dic2[id][k])
+                            # if(id ==1):
+                            #   print(df['count'][0], df2['count'][0], dic2[id][k])
 
     # for i in range(3):
     #   print(list1[i], ": ")
@@ -194,7 +194,7 @@ def plot_daily_disto2():
     pair = ['usdt', 'eth', 'usdc']
     side = ['sell', 'buy', 'sell']
 
-    unfitted = [[0.0] * 7 for i in range(3)]
+    unfitted = [[0.0] * 7 for _ in range(3)]
 
     total_years = [8, 6, 3]
     year_offset = [0, 2, 5]

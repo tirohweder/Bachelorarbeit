@@ -1,3 +1,4 @@
+import contextlib
 import numpy as np
 import settings
 from collections import Counter
@@ -40,7 +41,7 @@ def find_address_transactions(cur, con):
     MATCH (t:Transaction)-[r:RECEIVES]->(tr:Address)
     WHERE tr.address= '{0}'
     RETURN t.txid AS t_txid
-
+    LIMIT 10
     '''.format(master_address)
 
     result = conn.query(query)
@@ -57,15 +58,10 @@ def find_address_transactions(cur, con):
 
         list_of_all_addr.extend(x["address"] for x in result3)
 
-        temp = []
-        for x in result3:
-            temp.append(x["address"])
+        temp = [x["address"] for x in result3]
         temp2 = np.asarray(temp)
         unique_address_in_transaction = np.unique(temp2)
-        for x in unique_address_in_transaction:
-            list_real_conn_with_host.append(x)
-
-
+        list_real_conn_with_host.extend(iter(unique_address_in_transaction))
     # Creates a unique set of addresses
     temp = np.asarray(list_of_all_addr)
     list_of_all_addr_uniq = np.unique(temp)
@@ -100,23 +96,15 @@ def find_address_transactions(cur, con):
         result_real_in_deg = conn.query(query_real_in_deg)
         result_real_out_deg = conn.query(query_real_out_deg)
 
-        list_real_in_deg = []
-        list_real_out_deg = []
-
-        for w in result_real_in_deg:
-            list_real_in_deg.append(w["txid"])
-
-        for w in result_real_out_deg:
-            list_real_out_deg.append(w["txid"])
-
+        list_real_in_deg = [w["txid"] for w in result_real_in_deg]
+        list_real_out_deg = [w["txid"] for w in result_real_out_deg]
         temp_real_in_deg = np.asarray(list_real_in_deg)
         unique_real_in_deg = np.unique(temp_real_in_deg)
 
         temp_real_out_deg = np.asarray(list_real_out_deg)
         unique_real_out_deg = np.unique(temp_real_out_deg)
 
-        try:
-
+        with contextlib.suppress(Exception):
             statement_update_unique_address = '''
                             INSERT INTO potential_deposit_address(address, in_degree, out_degree, real_in_deg,
                             real_out_deg) 
@@ -127,38 +115,39 @@ def find_address_transactions(cur, con):
             cur.execute(statement_update_unique_address)
             con.commit()
 
-        except:
-            pass
-
     print("Part 1 Done")
 
+    try:
+        counts_conn = dict(Counter(list_of_all_addr))
+        print(counts_conn)
+        duplicates_conn = dict(counts_conn)
+        for keys in duplicates_conn:
+            statement = '''
+                        UPDATE potential_deposit_address
+                        SET conn_with_host = {0} 
+                        WHERE address = '{1}'
+                         '''.format(str(duplicates_conn[keys]),keys )
 
-    counts_conn = dict(Counter(list_of_all_addr))
-    duplicates_conn = {key:value for key, value in counts_conn.items()}
-    for keys in duplicates_conn.keys():
-        statement = '''
-                    UPDATE potential_deposit_address
-                    SET conn_with_host = {0} 
-                    WHERE address = '{1}'
-                     '''.format(str(duplicates_conn[keys]),keys )
+            print(statement)
+            cur.execute(statement)
+            con.commit()
 
-        #print(statement)
-        cur.execute(statement)
-        con.commit()
+        counts_real_conn = dict(Counter(list_real_conn_with_host))
+        duplicates_real_conn = dict(counts_real_conn)
+        for keys in duplicates_real_conn:
+            statement = '''
+                        UPDATE potential_deposit_address 
+                        SET real_conn_with_host = {0} 
+                        WHERE address = '{1}'
+                         '''.format(str(duplicates_real_conn[keys]),keys)
 
-    counts_real_conn = dict(Counter(list_real_conn_with_host))
-    duplicates_real_conn = {key:value for key, value in counts_real_conn.items()}
-    for keys in duplicates_real_conn.keys():
-        statement = '''
-                    UPDATE potential_deposit_address 
-                    SET real_conn_with_host = {0} 
-                    WHERE address = '{1}'
-                     '''.format(str(duplicates_real_conn[keys]),keys)
+            #print(statement)
+            cur.execute(statement)
+            con.commit()
+    except:
+        pass
 
-        #print(statement)
-        cur.execute(statement)
-        con.commit()
-
+    print("Part 2 Done")
 
     # counts_conn_with_host = dict(Counter(list_conn_with_host))
     # duplicates_conn_with_host = {key: value for key, value in counts_conn_with_host.items()}
@@ -189,7 +178,7 @@ def find_address_transactions(cur, con):
     #     cur.execute(statement)
     #     con.commit()
 
-    print("Part 2 Done")
+
 
     # Returns deposit transactions txid, the time of the transaction and the receiving address
     for x in list_of_all_addr_uniq:
@@ -207,7 +196,7 @@ def find_address_transactions(cur, con):
         for xx in result4:
             if (xx["address"] != master_address):
 
-                try:
+                with contextlib.suppress(Exception):
                     statement = '''
                                 INSERT INTO potential_depositing_transactions_with_blockhash(txid, block_hash, time, inc_address) 
                                 VALUES ('{0}','{1}' ,'{2}' , '{3}') 
@@ -225,9 +214,6 @@ def find_address_transactions(cur, con):
                     cur.execute(statement)
                     con.commit()
 
-                except:
-                    pass
-
     print("Done")
 
     ###################
@@ -236,7 +222,7 @@ def find_address_transactions(cur, con):
 
 def insert_deposit_address_transactions(cur, con):
 
-    try:
+    with contextlib.suppress(Exception):
         statement = '''
                     INSERT INTO deposit_address 
                     SELECT * FROM potential_deposit_address
@@ -253,8 +239,6 @@ def insert_deposit_address_transactions(cur, con):
 
         cur.execute(statement2)
         con.commit()
-    except:
-        pass
 
 
 main()
