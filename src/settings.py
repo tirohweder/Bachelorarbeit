@@ -18,7 +18,7 @@ conn = neo4jconn.Neo4jConnection(uri='bolt://localhost:7687', user='trohwede', p
 
 
 master_address = '1EEqRvnS7XqMoXDcaGL7bLS3hzZi1qUZm1'
-currency = 'usdc' #eth, usdc
+currency = 'eth' #eth, usdc
 
 
 # For hitbtc_trans_data

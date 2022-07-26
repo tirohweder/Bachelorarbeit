@@ -17,7 +17,6 @@ create table if not exists hitbtc_trans_eth
     timestamp        timestamp,
     trade_size_btc   numeric,
     usd_total        numeric,
-    btc_size_rounded numeric
 );
 
 

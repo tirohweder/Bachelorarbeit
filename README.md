@@ -1,6 +1,7 @@
 #Prerequisites
- - PostgreSQL Server
- - Python 3.8
+ - PostgreSQL 12.11 
+ - Python 3.9.0
+ - Neo4j 4.4.6 community
 
 # Step by Step:
 
@@ -10,34 +11,26 @@ Furthermore, the master address can be changed here as well as
 
 
 1. Execute database_script
-2. Run hitbtc_trans_data.py - choose currency in settings
-3. Run dep_address_and_transactions.py only find_address_transactions
-
-4. Run get_tran_qty.py
-    -  With bitcoin_client potential_depositing_transactions_with_blockhash is used,
-         for the other two potential_depositing_transactions, choose one, default API as is fastest
-5. Run dep_address_and_transactions.py insert_deposit_address_transactions
+2. Run **hitbtc_trans_data.py** - choose currency in settings
+3. After transaction data for ETH was collected run **info_adder.py** set_usd_value_for_eth    
+4. Run **dep_address_and_transactions.py** 
+5. Run **get_tran_qty.py**
+6. Run **find_matches.py**
 
 
-
-6. Run info_adder.py
-        in_out_degree           | ForBackup
-        get_real_in_out_degree  | gemacht
-    
-        conn_with_host          |
-
-        get_usd_value_for_eth   |
-    
+In order of finding the origin of addresses following methods can be used
+      
         origin_checker          | inserts the the amount of origin addresses into table origin
     
-        address_from_tagpack    |
-        origin_label            |
+        address_from_tagpack    | insert addresses from tagpacks into table tags
+        origin_label            | Checks top 100 addresses by appearance against GraphSense
     
-        entity_adder            |
-        entity_label            |
+        entity_adder            | Adds entity for top 100 addresses by appearance against GraphSense
+        entity_label            | Checks entitiy label for top 100 addresses by appearance
     
-        density_checker         | is used for analysis
+        
 
 
-7. Run find_matches.py
+density_checker() in **info_adder.py** is used for Table 5.7.
 
+**collection.py** is used to analyse data and create table and graphs, explained in comments

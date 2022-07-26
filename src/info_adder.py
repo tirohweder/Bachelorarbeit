@@ -30,8 +30,8 @@ def main():
 
 
         # conn_with_host(cur, con)
-        real_conn_with_host(cur, con)
-        # get_usd_value_for_eth_tran(cur,con,cur2)
+        #real_conn_with_host(cur, con)
+        set_usd_value_for_eth(cur,con,cur2)
 
         # address_from_tagpack(cur, con)
         # origin_checker(cur,con,cur2)
@@ -243,15 +243,22 @@ def set_usd_value_for_eth(cur, con, cur2):
 
     for row in cur:
         statement = '''
-                        UPDATE hitbtc_trans_eth 
+                        UPDATE hitbtc_trans_eth
                         SET usd_total = {1} * {2}* 
-                            (SELECT price FROM hitbtc_trans_usdt 
-                            WHERE EXTRACT(EPOCH FROM ('{3}'- hitbtc_trans_usdt.timestamp)) < 
+                            (SELECT price FROM hitbtc_trans_usdt
+                            WHERE EXTRACT(EPOCH FROM ('{3}'- hitbtc_trans_usdt.timestamp)) <
                             1000 LIMIT 1)
                         WHERE id = {0}'''.format(row[0], row[1], row[2], row[3])
 
         cur2.execute(statement)
         con.commit()
+
+    statement = '''
+                    UPDATE hitbtc_trans_eth 
+                    SET trade_size_btc= price * qty 
+                '''
+    cur2.execute(statement)
+    con.commit()
 
 
 def origin_checker(cur, con, cur2):

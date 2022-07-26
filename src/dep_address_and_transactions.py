@@ -18,8 +18,6 @@ def main():
         # Inserts potential_deposit_address and potential_depositing_transactions/_with_blockhash
         find_address_transactions(cur, con)
 
-        # Applies filter, and creates deposit_address, deposit_transactions
-        insert_deposit_address_transactions(cur, con)
 
     except (Exception) as error:
         print("Error while connecting to PostgreSQL", error)
@@ -117,11 +115,12 @@ def find_address_transactions(cur, con):
 
     print("Part 1 Done")
 
-    try:
-        counts_conn = dict(Counter(list_of_all_addr))
-        print(counts_conn)
-        duplicates_conn = dict(counts_conn)
-        for keys in duplicates_conn:
+    counts_conn = dict(Counter(list_of_all_addr))
+    print(counts_conn)
+    duplicates_conn = dict(counts_conn)
+    for keys in duplicates_conn:
+        with contextlib.suppress(Exception):
+
             statement = '''
                         UPDATE potential_deposit_address
                         SET conn_with_host = {0} 
@@ -132,9 +131,10 @@ def find_address_transactions(cur, con):
             cur.execute(statement)
             con.commit()
 
-        counts_real_conn = dict(Counter(list_real_conn_with_host))
-        duplicates_real_conn = dict(counts_real_conn)
-        for keys in duplicates_real_conn:
+    counts_real_conn = dict(Counter(list_real_conn_with_host))
+    duplicates_real_conn = dict(counts_real_conn)
+    for keys in duplicates_real_conn:
+        with contextlib.suppress(Exception):
             statement = '''
                         UPDATE potential_deposit_address 
                         SET real_conn_with_host = {0} 
@@ -144,41 +144,9 @@ def find_address_transactions(cur, con):
             #print(statement)
             cur.execute(statement)
             con.commit()
-    except:
-        pass
+
 
     print("Part 2 Done")
-
-    # counts_conn_with_host = dict(Counter(list_conn_with_host))
-    # duplicates_conn_with_host = {key: value for key, value in counts_conn_with_host.items()}
-    #
-    # counts_real_conn_with_host = dict(Counter(list_real_conn_with_host))
-    # duplicates_real_conn_with_host = {key: value for key, value in counts_real_conn_with_host.items()}
-    #
-    # print(counts_conn_with_host)
-    # print(counts_real_conn_with_host)
-    #
-    # for keys in duplicates_conn_with_host.keys():
-    #     statement = '''
-    #                 UPDATE potential_deposit_address
-    #                 SET conn_with_host= {0}
-    #                 WHERE address = '{1}'
-    #                 '''.format(str(duplicates_conn_with_host[keys]), keys)
-    #
-    #     cur.execute(statement)
-    #     con.commit()
-    #
-    # for keys in duplicates_real_conn_with_host.keys():
-    #     statement = '''
-    #                 UPDATE potential_deposit_address
-    #                 SET real_conn_with_host = {0}
-    #                 WHERE address = '{1}'
-    #                 '''.format(str(duplicates_real_conn_with_host[keys]), keys)
-    #
-    #     cur.execute(statement)
-    #     con.commit()
-
-
 
     # Returns deposit transactions txid, the time of the transaction and the receiving address
     for x in list_of_all_addr_uniq:
@@ -217,11 +185,6 @@ def find_address_transactions(cur, con):
     print("Done")
 
     ###################
-
-    ######################################
-
-def insert_deposit_address_transactions(cur, con):
-
     with contextlib.suppress(Exception):
         statement = '''
                     INSERT INTO deposit_address 
@@ -239,6 +202,8 @@ def insert_deposit_address_transactions(cur, con):
 
         cur.execute(statement2)
         con.commit()
+    ######################################
+
 
 
 main()
